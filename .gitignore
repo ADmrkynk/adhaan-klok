@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Adhaan Clock OS Raw Device Backup (preserved locally on disk)
+clock-os-backup/
+
+# Android build outputs & caches
+android-app/.gradle/
+android-app/build/
+android-app/*/build/
+android-app/local.properties
+android-app/.idea/
+
+# Logs & temp files
+*.log
+/tmp/

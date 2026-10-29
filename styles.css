@@ -1,0 +1,1692 @@
+/* ==========================================================================
+   MINIMALIST EDITORIAL ADHAAN CLOCK & MANEVİYAT HUB
+   Engineered for 7-inch Touch Displays (1024×600 Chrome 49 WebView) & Web
+   ========================================================================== */
+
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/font_0.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 700;
+  src: url('./fonts/font_1.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 400;
+  src: url('./fonts/font_2.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 300;
+  src: url('./fonts/font_3.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/font_4.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 600;
+  src: url('./fonts/font_5.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/font_6.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500;
+  src: url('./fonts/font_7.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: url('./fonts/font_8.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: url('./fonts/font_9.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Averta';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/Averta-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Averta';
+  font-style: normal;
+  font-weight: 600;
+  src: url('./fonts/Averta-Semibold.woff') format('woff');
+}
+
+:root {
+  --right-bg: #FBF8F3;
+  --right-surface: #F3EDE2;
+  --right-surface-hover: #EBE3D5;
+  --right-border: rgba(74, 53, 37, 0.14);
+  --text-espresso: #4A3525;
+  --text-muted: #8C7A6B;
+  --text-faded: rgba(74, 53, 37, 0.36);
+  --accent-umber: #3D2B1F;
+
+  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', 'Averta', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-arabic: 'Amiri', serif;
+}
+
+body.night-mode {
+  --right-bg: #181411;
+  --right-surface: #231D18;
+  --right-surface-hover: #2C251F;
+  --right-border: rgba(235, 222, 208, 0.14);
+  --text-espresso: #EDE3D7;
+  --text-muted: #A39383;
+  --text-faded: rgba(237, 227, 215, 0.32);
+  --accent-umber: #F5ECE0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+*,
+*:focus,
+*:active,
+*:hover {
+  outline: 0 !important;
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-focus-ring-color: rgba(0, 0, 0, 0) !important;
+}
+
+input[type="text"],
+input[type="url"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #0E0D0C;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  touch-action: manipulation;
+}
+
+/* ==========================================================================
+   SPLIT-SCREEN APP SHELL (36% Left Panel / 64% Right Panel)
+   ========================================================================== */
+.app-shell {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ==========================================================================
+   LEFT PANEL: Pre-Blurred Atmospheric Nature Backdrop + Time + Dates + Countdown
+   ========================================================================== */
+.left-panel {
+  width: 36%;
+  -webkit-flex: 0 0 36%;
+  flex: 0 0 36%;
+  height: 100%;
+  position: relative;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  padding: 32px 34px;
+  color: #FAF7F2;
+  overflow: hidden;
+}
+
+.nature-backdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: url('./img/bg-meadow-blur.jpg');
+  background-size: cover;
+  background-position: center 60%;
+  z-index: 0;
+}
+
+.nature-backdrop.bg-meadow {
+  background-image: url('./img/bg-meadow-blur.jpg');
+}
+
+.nature-backdrop.bg-olive {
+  background-image: url('./img/bg-olive-blur.jpg');
+}
+
+.nature-backdrop.bg-mountains {
+  background-image: url('./img/bg-mountains-blur.jpg');
+}
+
+.nature-backdrop.bg-dunes {
+  background-image: url('./img/bg-dunes-blur.jpg');
+}
+
+.left-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(30, 36, 38, 0.38) 0%,
+    rgba(42, 48, 36, 0.18) 45%,
+    rgba(52, 38, 22, 0.48) 100%
+  );
+  z-index: 1;
+}
+
+.time-date-block,
+.countdown-block {
+  position: relative;
+  z-index: 2;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+/* Top-Left Clock & Turkish Dates */
+.digital-clock {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: 76px;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  margin-bottom: 12px;
+  -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.date-gregorian {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-weight: 500;
+  font-size: 17px;
+  color: rgba(255, 255, 255, 0.96);
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+
+.date-hijri {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-weight: 400;
+  font-size: 15.5px;
+  color: rgba(255, 255, 255, 0.88);
+  letter-spacing: -0.01em;
+}
+
+/* Bottom-Left Next Prayer & Countdown */
+.next-prayer-label {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-weight: 500;
+  font-size: 16.5px;
+  color: rgba(255, 255, 255, 0.94);
+  margin-bottom: 6px;
+  letter-spacing: -0.01em;
+}
+
+.countdown-digits {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 300;
+  font-size: 74px;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: #FFFFFF;
+  -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* ==========================================================================
+   RIGHT PANEL: Warm Alabaster Canvas + Editorial Verse + Touch Sidebar Rail
+   ========================================================================== */
+.right-panel {
+  width: 64%;
+  -webkit-flex: 0 0 64%;
+  flex: 0 0 64%;
+  height: 100%;
+  position: relative;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  background-color: var(--right-bg);
+  color: var(--text-espresso);
+  transition: background-color 0.28s ease, color 0.28s ease;
+  overflow: hidden;
+}
+
+/* Center Stage Views */
+.center-stage {
+  display: none;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  width: calc(100% - 92px);
+  height: 100%;
+  padding: 20px 28px;
+  overflow: hidden;
+  position: relative;
+}
+
+#viewHome.active-view {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-animation: fadeInSolid 0.26s ease both;
+  animation: fadeInSolid 0.26s ease both;
+}
+
+#viewQuotes.active-view,
+#viewSettings.active-view {
+  display: block;
+  -webkit-animation: fadeInSolid 0.26s ease both;
+  animation: fadeInSolid 0.26s ease both;
+}
+
+/* Home Quote View */
+.quote-wrapper {
+  max-width: 92%;
+  text-align: center;
+  cursor: pointer;
+  padding: 14px 18px;
+  border-radius: 16px;
+  transition: opacity 0.28s ease;
+}
+
+.quote-wrapper.is-pressed {
+  background-color: rgba(74, 53, 37, 0.04);
+}
+
+.quote-wrapper.fade-out {
+  opacity: 0;
+}
+
+.verse-arabic {
+  font-family: 'Amiri', serif;
+  font-weight: 400;
+  font-size: 27px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.verse-arabic.hidden {
+  display: none;
+}
+
+.verse-text {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 400;
+  font-size: 44px;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--text-espresso);
+  margin-bottom: 18px;
+}
+
+.quote-wrapper.long-quote .verse-arabic {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.quote-wrapper.long-quote .verse-text {
+  font-size: 33px;
+  line-height: 1.2;
+}
+
+.verse-source {
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14.5px;
+  color: var(--text-muted);
+  letter-spacing: 0.01em;
+}
+
+/* ==========================================================================
+   FAR-RIGHT VERTICAL SIDEBAR RAIL (92px Wide, Touch-Optimized)
+   ========================================================================== */
+.right-rail {
+  width: 92px;
+  -webkit-flex: 0 0 92px;
+  flex: 0 0 92px;
+  height: 100%;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+  padding: 14px 8px;
+  border-left: 1px solid rgba(74, 53, 37, 0.08);
+  z-index: 5;
+}
+
+.rail-top {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.rail-top > * + * {
+  margin-top: 6px;
+}
+
+.rail-icon-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 44px;
+  height: 35px;
+  border-radius: 10px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+}
+
+.rail-icon-btn.is-pressed {
+  color: var(--text-espresso);
+  background-color: var(--right-surface);
+}
+
+/* Middle Prayer Times Stack */
+.rail-prayers {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  width: 100%;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.rail-prayers > * + * {
+  margin-top: 6px;
+}
+
+.rail-prayer-item {
+  display: block;
+  text-align: center;
+  width: 100%;
+  padding: 4px 4px;
+  border-radius: 8px;
+  color: var(--text-faded);
+}
+
+.rail-prayer-item.upcoming {
+  color: var(--text-muted);
+}
+
+.rail-prayer-item.active {
+  color: var(--text-espresso);
+  background-color: var(--right-surface);
+}
+
+.rail-prayer-item.active .p-abbr,
+.rail-prayer-item.active .p-time {
+  font-weight: 700;
+}
+
+.p-abbr {
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.15;
+}
+
+.p-time {
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+/* Bottom Navigation Icons */
+.rail-nav {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.rail-nav > * + * {
+  margin-top: 8px;
+}
+
+.nav-btn {
+  position: relative;
+  background: none;
+  border: none;
+  color: var(--text-faded);
+  cursor: pointer;
+  width: 48px;
+  height: 36px;
+  border-radius: 10px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+}
+
+.nav-btn.active {
+  color: var(--accent-umber);
+  background-color: var(--right-surface);
+}
+
+.nav-btn.active::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 8px;
+  width: 3px;
+  height: 20px;
+  background-color: var(--text-espresso);
+  border-radius: 2px;
+}
+
+/* ==========================================================================
+   MANEVİYAT HUB & SETTINGS PANELS (100% Block Layout — Never Overlaps in Chrome 49)
+   ========================================================================== */
+.panel-container {
+  width: 100%;
+  height: 100%;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--right-border);
+  margin-bottom: 10px;
+}
+
+.header-title-group {
+  display: block;
+  margin-right: 10px;
+}
+
+.panel-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  font-size: 25px;
+  color: var(--text-espresso);
+  line-height: 1.15;
+  margin-bottom: 2px;
+}
+
+.panel-subtitle {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.3;
+}
+
+.diyanet-status {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--right-surface);
+  padding: 5px 12px;
+  border-radius: 99px;
+}
+
+.filter-pills {
+  display: block;
+  margin-top: 4px;
+}
+
+.pill {
+  display: inline-block;
+  background: var(--right-surface);
+  border: 1px solid var(--right-border);
+  color: var(--text-espresso);
+  height: 34px;
+  line-height: 22px;
+  padding: 5px 13px;
+  margin-right: 5px;
+  margin-bottom: 4px;
+  border-radius: 99px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pill.active {
+  background: var(--text-espresso);
+  color: var(--right-bg);
+  border-color: var(--text-espresso);
+}
+
+/* Sub-toolbar (Search / Sub-category pills) */
+.hub-toolbar {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  margin-bottom: 10px;
+}
+
+.hub-toolbar:empty {
+  display: none;
+  margin-bottom: 0;
+}
+
+.sub-pills {
+  display: block;
+}
+
+.sub-pill {
+  display: inline-block;
+  background: var(--right-surface);
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  height: 32px;
+  padding: 5px 11px;
+  margin-right: 5px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sub-pill.active {
+  border-color: var(--text-espresso);
+  color: var(--text-espresso);
+  background: var(--right-surface-hover);
+}
+
+.hub-search {
+  -webkit-flex: 1 1 200px;
+  flex: 1 1 200px;
+  min-width: 180px;
+  height: 34px;
+  background: var(--right-surface);
+  border: 1px solid var(--right-border);
+  color: var(--text-espresso);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
+}
+
+.api-action-group {
+  display: block;
+}
+
+.api-fetch-btn {
+  display: inline-block;
+  background: var(--text-espresso);
+  color: var(--right-bg);
+  border: 1px solid var(--text-espresso);
+  height: 32px;
+  padding: 5px 11px;
+  margin-right: 5px;
+  margin-bottom: 4px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.api-fetch-btn.secondary {
+  background: var(--right-surface);
+  color: var(--text-espresso);
+  border-color: var(--right-border);
+}
+
+.api-fetch-btn:disabled {
+  opacity: 0.55;
+}
+
+/* Scrollable Hub & Settings Areas — MUST BE display: block so Chrome 49 never squishes children! */
+.hub-content,
+.settings-scroll {
+  display: block !important;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 6px;
+  padding-bottom: 24px;
+}
+
+.hub-fade {
+  -webkit-animation: fadeInSolid 0.25s ease;
+  animation: fadeInSolid 0.25s ease;
+}
+
+/* 1. BILINGUAL ZİKİR & DUA CARDS (Pure block layout with natural height) */
+.bilingual-card {
+  display: block !important;
+  height: auto !important;
+  background: var(--right-surface);
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+}
+
+.bilingual-card.clickable {
+  cursor: pointer;
+}
+
+.bilingual-card.clickable.is-pressed {
+  background-color: var(--right-surface-hover);
+}
+
+.bilingual-card.completed {
+  border-color: var(--text-espresso);
+}
+
+.card-top-bar {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.card-badge {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.zikir-counter-group {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.zikir-counter-btn {
+  background: var(--right-bg);
+  border: 1.5px solid var(--right-border);
+  color: var(--text-espresso);
+  height: 34px;
+  padding: 4px 14px;
+  margin-left: 6px;
+  border-radius: 99px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.zikir-counter-btn.done {
+  background: var(--text-espresso);
+  color: var(--right-bg);
+  border-color: var(--text-espresso);
+}
+
+.zikir-reset-btn {
+  display: inline-block;
+  background: none;
+  border: 1px solid var(--right-border);
+  color: var(--text-muted);
+  height: 32px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.card-arabic {
+  display: block;
+  font-family: 'Amiri', serif;
+  font-size: 24px;
+  line-height: 1.7;
+  color: var(--text-espresso);
+  text-align: right;
+  direction: rtl;
+  margin-bottom: 8px;
+}
+
+.card-turkish {
+  display: block;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-espresso);
+  border-top: 1px solid var(--right-border);
+  padding-top: 8px;
+  margin-bottom: 8px;
+}
+
+.card-footer-meta {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.pin-home-btn {
+  background: var(--right-bg);
+  border: 1px solid var(--right-border);
+  color: var(--text-espresso);
+  height: 30px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pin-home-btn.pinned {
+  background: var(--text-espresso);
+  color: var(--right-bg);
+  border-color: var(--text-espresso);
+}
+
+/* 2. ESMÂÜ'L-HÜSNÂ (99 NAMES OF ALLAH) */
+.esma-featured {
+  background: var(--right-surface);
+  border: 1.5px solid var(--right-border);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+}
+
+.esma-featured-info {
+  display: block;
+  padding-right: 14px;
+}
+
+.esma-featured-tag {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.esma-featured-title {
+  display: block;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-espresso);
+  margin-bottom: 3px;
+}
+
+.esma-featured-meaning {
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-espresso);
+}
+
+.esma-featured-arabic {
+  font-family: 'Amiri', serif;
+  font-size: 38px;
+  color: var(--text-espresso);
+  line-height: 1.2;
+  padding-left: 10px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.esma-grid {
+  display: block;
+  overflow: hidden;
+}
+
+.esma-grid::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.esma-card {
+  display: block;
+  float: left;
+  width: 32%;
+  margin-right: 2%;
+  margin-bottom: 10px;
+  min-height: 128px;
+  background: var(--right-surface);
+  border: 1.5px solid transparent;
+  border-radius: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.esma-card:nth-child(3n) {
+  margin-right: 0;
+}
+
+.esma-card:nth-child(3n+1) {
+  clear: left;
+}
+
+.esma-card.is-pressed {
+  border-color: var(--text-espresso);
+}
+
+.esma-card-head {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: baseline;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.esma-num {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.esma-ar {
+  font-family: 'Amiri', serif;
+  font-size: 26px;
+  color: var(--text-espresso);
+  line-height: 1.2;
+  direction: rtl;
+}
+
+.esma-tr {
+  display: block;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-espresso);
+  margin-bottom: 3px;
+}
+
+.esma-desc {
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   SETTINGS VIEW (Pure Block Stacking — Never Squishes or Overlaps)
+   ========================================================================== */
+.settings-group {
+  display: block !important;
+  height: auto !important;
+  background: var(--right-surface);
+  border-radius: 14px;
+  padding: 15px 18px;
+  margin-bottom: 14px;
+}
+
+.group-header {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.group-header h3 {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-espresso);
+}
+
+.current-tag {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--right-bg);
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+
+.settings-desc {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.wifi-actions-row {
+  display: block;
+}
+
+.wifi-actions-row > * {
+  margin-right: 8px;
+}
+
+.city-chips,
+.backdrop-chips {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.chip {
+  display: inline-block;
+  background: var(--right-bg);
+  border: 1px solid var(--right-border);
+  color: var(--text-espresso);
+  height: 36px;
+  padding: 6px 14px;
+  margin-right: 6px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip.active,
+.chip.is-pressed {
+  background: var(--text-espresso);
+  color: var(--right-bg);
+  border-color: var(--text-espresso);
+}
+
+.custom-location-row,
+.custom-audio-row {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.custom-location-row > * + *,
+.custom-audio-row > * + * {
+  margin-left: 8px;
+}
+
+.text-input {
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  min-width: 110px;
+  height: 38px;
+  background: var(--right-bg);
+  border: 1px solid var(--right-border);
+  color: var(--text-espresso);
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
+}
+
+.action-btn {
+  display: inline-block;
+  background: var(--text-espresso);
+  color: var(--right-bg);
+  border: none;
+  height: 38px;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.text-btn {
+  display: inline-block;
+  background: var(--right-bg);
+  border: 1px solid var(--right-border);
+  color: var(--text-espresso);
+  height: 34px;
+  padding: 5px 12px;
+  margin-left: 6px;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 2-Column Deterministic Muadhin Grid */
+.muadhin-grid {
+  display: block;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.muadhin-grid::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.muadhin-item {
+  float: left;
+  width: 49%;
+  margin-right: 2%;
+  margin-bottom: 8px;
+  background: var(--right-bg);
+  border: 1.5px solid var(--right-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.muadhin-item:nth-child(2n) {
+  margin-right: 0;
+}
+
+.muadhin-item:nth-child(2n+1) {
+  clear: left;
+}
+
+.muadhin-item.active {
+  border-color: var(--text-espresso);
+  background: var(--text-espresso);
+  color: var(--right-bg);
+}
+
+.muadhin-item-info {
+  display: block;
+  min-width: 0;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  padding-right: 8px;
+}
+
+.muadhin-item-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.muadhin-item-sub {
+  display: block;
+  font-size: 11px;
+  opacity: 0.82;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.muadhin-item-actions {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.muadhin-preview-btn,
+.muadhin-delete-btn {
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  background: var(--right-surface);
+  color: var(--text-espresso);
+  border: 1px solid var(--right-border);
+  height: 32px;
+  min-width: 76px;
+  padding: 0 12px;
+  margin-left: 4px;
+  border-radius: 7px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.muadhin-item.active .muadhin-preview-btn,
+.muadhin-item.active .muadhin-delete-btn {
+  background: var(--right-bg);
+  color: var(--text-espresso);
+  border-color: transparent;
+}
+
+.muadhin-preview-btn.playing {
+  background: #B85D3B !important;
+  color: #FFFFFF !important;
+  border-color: #B85D3B !important;
+}
+
+/* Per-Prayer & Add Custom Muadhin Boxes (Pure Block Layout) */
+.per-prayer-box,
+.add-muadhin-box {
+  display: block !important;
+  height: auto !important;
+  background: var(--right-bg);
+  border: 1px solid var(--right-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+
+.sub-box-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-espresso);
+  margin-bottom: 6px;
+}
+
+.per-prayer-list {
+  display: block !important;
+  height: auto !important;
+  padding-top: 8px;
+  margin-top: 8px;
+  border-top: 1px solid var(--right-border);
+}
+
+.per-prayer-list.hidden {
+  display: none !important;
+}
+
+.per-prayer-row {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.per-prayer-row:last-child {
+  margin-bottom: 0;
+}
+
+.per-prayer-name {
+  font-size: 13px;
+  font-weight: 700;
+  width: 92px;
+  -webkit-flex: 0 0 92px;
+  flex: 0 0 92px;
+  color: var(--text-espresso);
+  white-space: nowrap;
+}
+
+.per-prayer-select {
+  -webkit-flex: 1 1 0%;
+  flex: 1 1 0%;
+  width: 0;
+  min-width: 0;
+  height: 32px;
+  background: var(--right-surface);
+  color: var(--text-espresso);
+  border: 1px solid var(--right-border);
+  border-radius: 7px;
+  padding: 4px 8px;
+  margin-right: 4px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.per-prayer-mute-btn {
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 78px;
+  padding: 0 12px;
+  margin-left: 6px;
+  border-radius: 7px;
+  border: 1px solid var(--right-border);
+  background: var(--right-surface);
+  color: var(--text-espresso);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.per-prayer-mute-btn.muted {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.header-actions {
+  display: block;
+}
+
+.volume-row {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.volume-row input[type="range"] {
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  height: 24px;
+  margin: 0 12px;
+}
+
+.file-label {
+  display: inline-block;
+  height: 38px;
+  line-height: 22px;
+  background: var(--right-bg);
+  border: 1px dashed var(--text-muted);
+  color: var(--text-espresso);
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.checkbox-row {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  min-height: 30px;
+  font-size: 13px;
+  color: var(--text-espresso);
+  cursor: pointer;
+}
+
+.checkbox-row input {
+  width: 18px;
+  height: 18px;
+  margin-right: 10px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+/* Active Adhan Toast Banner */
+.adhan-toast {
+  position: absolute;
+  bottom: 18px;
+  left: 22px;
+  right: 108px;
+  background: var(--text-espresso);
+  color: var(--right-bg);
+  padding: 14px 20px;
+  border-radius: 12px;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+  z-index: 20;
+  -webkit-animation: fadeInSolid 0.25s ease;
+  animation: fadeInSolid 0.25s ease;
+}
+
+.adhan-toast.hidden {
+  display: none;
+}
+
+.toast-text {
+  display: block;
+}
+
+.toast-text strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.toast-text span {
+  display: block;
+  font-size: 13px;
+  opacity: 0.88;
+}
+
+.stop-btn {
+  background: var(--right-bg);
+  color: var(--text-espresso);
+  border: none;
+  height: 36px;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ============================================================================
+   TOP-CENTER NIGHT STANDBY BUTTON (Inside #viewHome Only — Zero Header Collision)
+   ============================================================================ */
+.top-center-bar {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  transform: translateX(-50%);
+  z-index: 15;
+}
+
+.top-center-night-btn {
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: #241C16;
+  color: #FBF8F3;
+  border: 1px solid rgba(251, 248, 243, 0.24);
+  padding: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.top-center-night-btn svg {
+  margin: 0;
+}
+
+.top-center-night-btn.after-maghrib-pulse {
+  border-color: rgba(235, 205, 160, 0.7);
+}
+
+.top-center-night-btn.hidden {
+  display: none;
+}
+
+/* ============================================================================
+   PITCH-BLACK NIGHT STANDBY OVERLAY (Yatsı & Sabah Countdown Only)
+   ============================================================================ */
+.night-standby-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 90;
+  background: #000000;
+  color: #6B6761;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: space-between;
+  justify-content: space-between;
+  -webkit-align-items: center;
+  align-items: center;
+  padding: 32px 48px;
+  cursor: pointer;
+  -webkit-animation: fadeInSolid 0.35s ease;
+  animation: fadeInSolid 0.35s ease;
+}
+
+.night-standby-overlay.hidden {
+  display: none;
+}
+
+.night-standby-top {
+  width: 100%;
+  text-align: center;
+}
+
+.night-standby-clock {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: #4A4743;
+}
+
+.night-standby-center {
+  text-align: center;
+}
+
+.night-standby-label {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #5A5752;
+  margin-bottom: 10px;
+}
+
+.night-standby-digits {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 118px;
+  font-weight: 300;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: #6E6A64;
+  -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.night-standby-schedule {
+  margin-top: 14px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: #484541;
+}
+
+.night-standby-bottom {
+  width: 100%;
+  text-align: center;
+}
+
+.night-standby-exit-hint {
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: #363431;
+}
+
+@-webkit-keyframes fadeInSolid {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInSolid {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--right-border);
+  border-radius: 99px;
+}
+
+/* Hidden 1x1 YouTube IFrame API wrapper */
+.yt-player-wrapper {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0.01;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: -1;
+}
+
+/* ==========================================================================
+   TOUCH: generic pressed feedback (set by JS only for real taps, never while scrolling)
+   ========================================================================== */
+button.is-pressed,
+.muadhin-card.is-pressed,
+.pill.is-pressed,
+.sub-pill.is-pressed {
+  opacity: 0.72;
+}
+
+.settings-scroll,
+.hub-content {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Namaz Vakitleri & Maneviyat Ekranı</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+
+<body>
+  <div class="app-shell" id="appShell">
+
+    <!-- LEFT PANEL: Atmospheric Nature Backdrop, Time, Turkish Dates & Countdown -->
+    <aside class="left-panel" id="leftPanel">
+      <div class="nature-backdrop bg-meadow" id="natureBackdrop"></div>
+      <div class="left-overlay"></div>
+
+      <!-- Top Left: Current Time & Dates in Turkish -->
+      <div class="time-date-block">
+        <div class="digital-clock" id="currentTime">14:06</div>
+        <div class="date-gregorian" id="gregorianDate">Per, 29 Eki</div>
+        <div class="date-hijri" id="hijriDate">17 Cemâziyelevvel 1448</div>
+      </div>
+
+      <!-- Bottom Left: Next Prayer Name & Countdown Timer -->
+      <div class="countdown-block">
+        <div class="next-prayer-label" id="countdownTitle">Yatsı vaktine kalan süre</div>
+        <div class="countdown-digits" id="countdownDigits">0:18.00</div>
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: Warm Alabaster Canvas, Editorial Verse & Touch-Friendly Sidebar -->
+    <main class="right-panel">
+
+      <!-- VIEW 1: Home Quote View (Ayet / Hadis in Arabic & Turkish) -->
+      <section class="center-stage active-view" id="viewHome">
+        <!-- Top-Center Night Standby Button (Inside Home View so it never overlaps other page headers) -->
+        <div class="top-center-bar">
+          <button class="top-center-night-btn" id="nightStandbyTriggerBtn"
+            title="Akşam sonrası tam siyah gece ekranını aç">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          </button>
+        </div>
+
+        <div class="quote-wrapper" id="quoteWrapper" title="Sonraki ayet veya hadis için dokunun">
+          <p class="verse-arabic" id="verseArabic" dir="rtl" lang="ar">
+            اهْدِنَا الصِّرَاطَ الْمُسْتَقِيمَ
+          </p>
+          <blockquote class="verse-text" id="verseText">
+            Bizi doğru yola ilet.
+          </blockquote>
+          <cite class="verse-source" id="verseSource">
+            Fâtiha Suresi, 6. Ayet
+          </cite>
+        </div>
+      </section>
+
+      <!-- VIEW 2: Maneviyat Hub (Zikir & Tesbihat, Esmâü'l-Hüsnâ, Dualar, Ayet/Hadis) -->
+      <section class="center-stage" id="viewQuotes">
+        <div class="panel-container">
+          <div class="panel-header">
+            <div class="header-title-group">
+              <h2 class="panel-title" id="hubMainTitle">Zikir ve Tesbihat</h2>
+            </div>
+            <div class="filter-pills" id="hubTabs">
+              <button class="pill active" data-tab="zikir">Zikir & Tesbihat</button>
+              <button class="pill" data-tab="esma">Esmâü'l-Hüsnâ (99)</button>
+              <button class="pill" data-tab="dua">Dualar</button>
+              <button class="pill" data-tab="ayet">Ayet & Hadis</button>
+            </div>
+          </div>
+
+          <!-- Search / Sub-filter bar -->
+          <div class="hub-toolbar" id="hubToolbar"></div>
+
+          <!-- Dynamic Scrollable Content Container -->
+          <div class="hub-content" id="hubContent">
+            <!-- Populated dynamically by app.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: Settings (Müezzin Stüdyosu, Diyanet Konum, Wi-Fi & Görünüm) -->
+      <section class="center-stage" id="viewSettings">
+        <div class="panel-container">
+          <div class="panel-header">
+            <div class="header-title-group">
+              <h2 class="panel-title">Müezzin, Konum ve Ekran Ayarları</h2>
+            </div>
+          </div>
+
+          <div class="settings-scroll" id="settingsScroll">
+
+            <!-- 1. MUADHIN & ADHAN STUDIO SECTION -->
+            <div class="settings-group" id="muadhinSection">
+              <div class="group-header">
+                <h3>1. Müezzin ve Ezan Sesi Seçimi</h3>
+                <div class="header-actions">
+                  <button class="text-btn" id="applyTurkishMakamsBtn"
+                    title="Sabah: Sabâ, Öğle: Rast, İkindi: Hicaz, Akşam: Segâh, Yatsı: Uşşak">
+                    Türk Makam Geleneğini Uygula
+                  </button>
+                  <button class="text-btn" id="testAudioBtn">Seçili Ezanı Dinle</button>
+                </div>
+              </div>
+
+              <!-- Preset & Custom Muadhin Cards Grid -->
+              <div class="muadhin-grid" id="muadhinList">
+                <!-- Populated by JS -->
+              </div>
+
+              <!-- Per-Prayer (Vakit Bazlı) Muadhin & Mute Toggle -->
+              <div class="per-prayer-box">
+                <label class="checkbox-row">
+                  <input type="checkbox" id="perPrayerModeToggle">
+                  <span><strong>Her vakit için ayrı müezzin / makam seç</strong> (Sabah, Öğle, İkindi, Akşam,
+                    Yatsı)</span>
+                </label>
+
+                <div class="per-prayer-list hidden" id="perPrayerList">
+                  <!-- Populated by JS -->
+                </div>
+              </div>
+
+              <!-- Volume & Ezan Duası Controls -->
+              <div class="volume-row">
+                <label for="volumeSlider">Ezan Ses Seviyesi</label>
+                <input type="range" id="volumeSlider" min="0" max="100" value="85">
+                <span id="volumeValue">85%</span>
+              </div>
+
+              <label class="checkbox-row">
+                <input type="checkbox" id="duaToggle" checked>
+                <span>Ezan bittikten sonra otomatik Ezan Duası okunsun</span>
+              </label>
+            </div>
+
+            <!-- 2. DIYANET LOCATION SECTION -->
+            <div class="settings-group" id="locationSection">
+              <div class="group-header">
+                <h3>2. Şehir ve Konum</h3>
+                <span class="current-tag" id="currentCityBadge">Lahey</span>
+              </div>
+              <p class="settings-desc" id="locationDesc">Lahey (Hollanda) — Diyanet İşleri Başkanlığı resmî namaz vakitleri</p>
+            </div>
+
+            <!-- 3. WI-FI & NETWORK CONNECTION SECTION -->
+            <div class="settings-group" id="wifiSection">
+              <div class="group-header">
+                <h3>3. Wi-Fi ve İnternet Bağlantısı</h3>
+                <span class="current-tag" id="wifiStatusBadge">Bağlantı kontrol ediliyor...</span>
+              </div>
+              <p class="settings-desc">
+                Lahey için Diyanet İşleri Başkanlığı'nın resmî vakit çizelgesi saatte kayıtlıdır; internet olmadan da doğru vakitler gösterilir. Wi-Fi bağlıyken vakitler otomatik olarak güncellenir.
+              </p>
+              <div class="wifi-actions-row">
+                <button class="action-btn" id="openWifiSettingsBtn">Wi-Fi Ağ Ayarlarını Aç</button>
+                <button class="text-btn" id="syncNowBtn">Vakitleri Şimdi Senkronize Et</button>
+              </div>
+            </div>
+
+            <!-- 4. APPEARANCE & DISPLAY SECTION -->
+            <div class="settings-group">
+              <div class="group-header">
+                <h3>4. Görünüm ve Arka Plan</h3>
+              </div>
+              <div class="backdrop-chips" id="backdropChips">
+                <button class="chip active" data-bg="meadow">Bozkır ve Başak</button>
+                <button class="chip" data-bg="olive">Zeytin Dalı</button>
+                <button class="chip" data-bg="mountains">Sabah Sisi</button>
+                <button class="chip" data-bg="dunes">Çöl Akşamı</button>
+              </div>
+              <label class="checkbox-row">
+                <input type="checkbox" id="showHomeArabicToggle" checked>
+                <span>Ana ekranda ayet ve hadislerin Arapça aslını da göster</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAR-RIGHT VERTICAL SIDEBAR (Touch-friendly Controls, Prayer Schedule, Navigation) -->
+      <nav class="right-rail">
+        <!-- Top Utility Icons -->
+        <div class="rail-top">
+          <button class="rail-icon-btn" id="quickAudioBtn" title="Müezzin Seçimi ve Ses Ayarları">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M11 5L6 9H2v6h4l5 4V5zm4.54 3.46a5 5 0 0 1 0 7.07l1.41 1.41a7 7 0 0 0 0-9.9l-1.41 1.42z" />
+            </svg>
+          </button>
+          <button class="rail-icon-btn" id="themeToggleBtn" title="Gece / Gündüz Görünümü">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="4" />
+              <path
+                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+            </svg>
+          </button>
+          <button class="rail-icon-btn" id="wifiQuickBtn" title="Wi-Fi ve Ağ Ayarları">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0" />
+              <path d="M1.42 9a16 16 0 0 1 21.16 0" />
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" />
+              <circle cx="12" cy="20" r="1" fill="currentColor" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Middle Prayer Times Stack -->
+        <div class="rail-prayers" id="railPrayers">
+          <div class="rail-prayer-item" data-prayer="Fajr" id="item-Fajr">
+            <span class="p-abbr">İMS</span>
+            <span class="p-time" id="time-Fajr">05:36</span>
+          </div>
+          <div class="rail-prayer-item" data-prayer="Sunrise" id="item-Sunrise">
+            <span class="p-abbr">GÜN</span>
+            <span class="p-time" id="time-Sunrise">07:31</span>
+          </div>
+          <div class="rail-prayer-item" data-prayer="Dhuhr" id="item-Dhuhr">
+            <span class="p-abbr">ÖĞL</span>
+            <span class="p-time" id="time-Dhuhr">12:29</span>
+          </div>
+          <div class="rail-prayer-item" data-prayer="Asr" id="item-Asr">
+            <span class="p-abbr">İKN</span>
+            <span class="p-time" id="time-Asr">14:52</span>
+          </div>
+          <div class="rail-prayer-item" data-prayer="Maghrib" id="item-Maghrib">
+            <span class="p-abbr">AKŞ</span>
+            <span class="p-time" id="time-Maghrib">17:25</span>
+          </div>
+          <div class="rail-prayer-item active" data-prayer="Isha" id="item-Isha">
+            <span class="p-abbr">YAT</span>
+            <span class="p-time" id="time-Isha">18:46</span>
+          </div>
+        </div>
+
+        <!-- Bottom Navigation Icons -->
+        <div class="rail-nav">
+          <button class="nav-btn active" data-target="viewHome" title="Ana Ekran">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M12 3L4 9v12h5v-7h6v7h5V9l-8-6z" />
+            </svg>
+          </button>
+          <button class="nav-btn" data-target="viewQuotes" title="Maneviyat Rehberi (Zikir, Esma, Dua)">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path
+                d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1z" />
+            </svg>
+          </button>
+          <button class="nav-btn" data-target="viewSettings" title="Müezzin ve Ekran Ayarları">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <rect x="14" y="14" width="7" height="7" rx="1.5" />
+            </svg>
+          </button>
+        </div>
+      </nav>
+
+      <!-- Active Adhan Notification Overlay -->
+      <div class="adhan-toast hidden" id="adhanBanner">
+        <div class="toast-text">
+          <strong id="bannerPrayerName">İkindi Vakti</strong>
+          <span id="bannerMuadhinName">Mekke-i Mükerreme Ezanı okunuyor</span>
+        </div>
+        <button class="stop-btn" id="stopAdhanBtn">Durdur</button>
+      </div>
+    </main>
+
+    <!-- PITCH-BLACK NIGHT STANDBY OVERLAY (Shows only countdown for Yatsı and then Sabah) -->
+    <div class="night-standby-overlay hidden" id="nightStandbyOverlay" title="Normal ekrana dönmek için dokunun">
+      <div class="night-standby-top">
+        <span class="night-standby-clock" id="nightStandbyClock">21:14</span>
+      </div>
+
+      <div class="night-standby-center">
+        <div class="night-standby-label" id="nightStandbyLabel">Yatsı namazına kalan süre</div>
+        <div class="night-standby-digits" id="nightStandbyDigits">01:32.18</div>
+        <div class="night-standby-schedule" id="nightStandbySchedule">
+          Yatsı Vakti · 21:46 &nbsp;&nbsp;|&nbsp;&nbsp; Sabah (İmsak) · 05:14
+        </div>
+      </div>
+
+      <div class="night-standby-bottom">
+        <span class="night-standby-exit-hint">Normal ekrana dönmek için ekrana dokunun</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Audio & YouTube IFrame API Elements -->
+  <audio id="adhanAudioPlayer" preload="none"></audio>
+  <audio id="duaAudioPlayer" preload="none"></audio>
+  <div id="ytPlayerWrapper" class="yt-player-wrapper">
+    <div id="ytPlayerHost"></div>
+  </div>
+
+  <script src="diyanet-lahey.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
