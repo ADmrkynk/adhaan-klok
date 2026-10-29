@@ -64,3 +64,4 @@ Een moderne, minimalistische en spirituele interface voor slimme Adhaan-klokken 
    ./deploy-to-clock.sh
    ```
 3. Het script pusht automatisch alle UI-bestanden, lettertypes, afbeeldingen en audiobestanden naar `/data/data/com.yij.outdoor/files/html/` en start de app direct opnieuw op.
+

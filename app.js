@@ -939,6 +939,18 @@ function initApp() {
   }
   applyBackdrop(state.backdrop);
 
+  // Purge any legacy oversized quotes from localStorage
+  try {
+    const raw = localStorage.getItem('clock_cached_api_quotes');
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        const cleaned = list.filter(item => item && item.text && item.text.length <= 130 && (!item.ar || item.ar.length <= 140));
+        localStorage.setItem('clock_cached_api_quotes', JSON.stringify(cleaned));
+      }
+    }
+  } catch (e) {}
+
   // Restore cached API verses & hadiths from localStorage
   restoreCachedApiContent();
 
@@ -1043,18 +1055,20 @@ function fetchLiveAyahFromApi(customRef) {
   if (!targetRef) {
     const existingRefs = VERSES_AND_HADITHS.map(v => v.ref).filter(Boolean);
     const availableCurated = CURATED_AYAH_REFS.filter(r => existingRefs.indexOf(r) === -1);
-    if (availableCurated.length > 0 && Math.random() < 0.75) {
+    if (availableCurated.length > 0) {
       targetRef = availableCurated[Math.floor(Math.random() * availableCurated.length)];
     } else {
-      targetRef = String(Math.floor(Math.random() * 6236) + 1);
+      targetRef = CURATED_AYAH_REFS[Math.floor(Math.random() * CURATED_AYAH_REFS.length)];
     }
   }
 
   return fetchAyahByReference(targetRef)
     .then(ayahObj => {
-      if (!customRef && ayahObj.text.length > 220) {
-        const fallbackRef = CURATED_AYAH_REFS[Math.floor(Math.random() * CURATED_AYAH_REFS.length)];
-        return fetchLiveAyahFromApi(fallbackRef);
+      // Discard verses that are too long to fit cleanly on screen
+      if (ayahObj.text.length > 125 || (ayahObj.ar && ayahObj.ar.length > 135)) {
+        if (!customRef) {
+          return fetchLiveAyahFromApi();
+        }
       }
 
       const alreadyExists = VERSES_AND_HADITHS.some(v => v.source === ayahObj.source);
@@ -1112,7 +1126,7 @@ function fetchLiveHadithFromApi(attempt) {
       const cleanedTr = cleanHadithText(trHadith);
       const cleanedAr = arHadith.trim();
 
-      if (cleanedTr.length >= 20 && cleanedTr.length <= 240 && cleanedAr.length >= 10) {
+      if (cleanedTr.length >= 20 && cleanedTr.length <= 125 && cleanedAr.length >= 10 && cleanedAr.length <= 135) {
         const hadithObj = {
           type: 'hadis',
           ar: cleanedAr,
@@ -1148,7 +1162,14 @@ function restoreCachedApiContent() {
     const list = JSON.parse(raw);
     if (Array.isArray(list)) {
       list.reverse().forEach(item => {
-        if (item && item.text && item.source && !VERSES_AND_HADITHS.some(v => v.source === item.source)) {
+        if (
+          item &&
+          item.text &&
+          item.source &&
+          item.text.length <= 130 &&
+          (!item.ar || item.ar.length <= 140) &&
+          !VERSES_AND_HADITHS.some(v => v.source === item.source)
+        ) {
           VERSES_AND_HADITHS.unshift(item);
         }
       });
@@ -1676,8 +1697,18 @@ function renderActiveQuote(animate) {
     elVerseText.textContent = item.text;
     elVerseSource.textContent = item.source;
 
-    const isLong = (item.text && item.text.length > 62) || (item.ar && item.ar.length > 75);
-    toggleClass(elQuoteWrapper, 'long-quote', Boolean(isLong));
+    const trLen = item.text ? item.text.length : 0;
+    const arLen = item.ar ? item.ar.length : 0;
+
+    elQuoteWrapper.classList.remove('medium-quote', 'long-quote', 'xlong-quote');
+
+    if (trLen > 130 || arLen > 140) {
+      elQuoteWrapper.classList.add('xlong-quote');
+    } else if (trLen > 85 || arLen > 90) {
+      elQuoteWrapper.classList.add('long-quote');
+    } else if (trLen > 50 || arLen > 55) {
+      elQuoteWrapper.classList.add('medium-quote');
+    }
   };
 
   if (!animate) {

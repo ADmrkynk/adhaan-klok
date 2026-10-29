@@ -1,10 +1,82 @@
 /* ==========================================================================
    MINIMALIST EDITORIAL ADHAAN CLOCK & MANEVİYAT HUB
-   Engineered for 7-inch Touch Displays (1024×600 / 800×480) & Responsive Web
+   Engineered for 7-inch Touch Displays (1024×600 Chrome 49 WebView) & Web
    ========================================================================== */
 
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/font_0.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 700;
+  src: url('./fonts/font_1.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 400;
+  src: url('./fonts/font_2.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 300;
+  src: url('./fonts/font_3.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/font_4.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 600;
+  src: url('./fonts/font_5.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/font_6.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 500;
+  src: url('./fonts/font_7.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: url('./fonts/font_8.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: url('./fonts/font_9.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Averta';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/Averta-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'Averta';
+  font-style: normal;
+  font-weight: 600;
+  src: url('./fonts/Averta-Semibold.woff') format('woff');
+}
+
 :root {
-  /* Warm Cream / Alabaster Palette (Default Light Mode matching reference) */
   --right-bg: #FBF8F3;
   --right-surface: #F3EDE2;
   --right-surface-hover: #EBE3D5;
@@ -14,10 +86,9 @@
   --text-faded: rgba(74, 53, 37, 0.36);
   --accent-umber: #3D2B1F;
 
-  /* Fonts */
   --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-arabic: 'Amiri', 'Traditional Arabic', serif;
+  --font-sans: 'Plus Jakarta Sans', 'Averta', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-arabic: 'Amiri', serif;
 }
 
 body.night-mode {
@@ -37,8 +108,28 @@ body.night-mode {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  -webkit-tap-highlight-color: transparent;
   user-select: none;
+  -webkit-user-select: none;
+}
+
+*,
+*:focus,
+*:active,
+*:hover {
+  outline: 0 !important;
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-focus-ring-color: rgba(0, 0, 0, 0) !important;
+}
+
+input[type="text"],
+input[type="url"] {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 html,
@@ -47,141 +138,83 @@ body {
   height: 100%;
   overflow: hidden;
   background-color: #0E0D0C;
-  font-family: var(--font-sans);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
   touch-action: manipulation;
 }
 
 /* ==========================================================================
-   7-INCH (1024×600) HARDWARE SIMULATOR MODE (For testing on Mac)
-   ========================================================================== */
-.sim-toolbar {
-  display: none;
-}
-
-body.sim-7inch {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at center, #24201D 0%, #0E0C0A 100%);
-  gap: 14px;
-}
-
-body.sim-7inch .sim-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  color: #EDE3D7;
-  padding: 6px 16px;
-  border-radius: 99px;
-  font-size: 0.82rem;
-  font-weight: 500;
-}
-
-.sim-exit-btn {
-  background: #EDE3D7;
-  color: #181411;
-  border: none;
-  padding: 4px 12px;
-  border-radius: 99px;
-  font-size: 0.76rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-body.sim-7inch .app-shell {
-  width: 1024px;
-  height: 600px;
-  max-width: 96vw;
-  max-height: 86vh;
-  border-radius: 18px;
-  box-shadow:
-    0 0 0 12px #1E1B18,
-    0 0 0 14px #332E2A,
-    0 28px 70px rgba(0, 0, 0, 0.75);
-}
-
-/* ==========================================================================
-   SPLIT-SCREEN APP SHELL (Uses CSS Container Queries for Perfect Scaling)
+   SPLIT-SCREEN APP SHELL (36% Left Panel / 64% Right Panel)
    ========================================================================== */
 .app-shell {
+  display: -webkit-flex;
   display: flex;
+  -webkit-flex-direction: row;
   flex-direction: row;
-  container-type: size;
-  display: grid;
-  grid-template-columns: 36% 64%;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   position: relative;
 }
 
 /* ==========================================================================
-   LEFT PANEL: Atmospheric Nature Backdrop + Time + Dates + Countdown
+   LEFT PANEL: Pre-Blurred Atmospheric Nature Backdrop + Time + Dates + Countdown
    ========================================================================== */
 .left-panel {
   width: 36%;
+  -webkit-flex: 0 0 36%;
   flex: 0 0 36%;
   height: 100%;
   position: relative;
+  display: -webkit-flex;
   display: flex;
+  -webkit-flex-direction: column;
   flex-direction: column;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
-  padding: 31.2px 34.8px;
-  padding: clamp(20px, 5.2cqh, 48px) clamp(22px, 3.4cqw, 44px);
+  padding: 28px 30px;
   color: #FAF7F2;
   overflow: hidden;
 }
 
 .nature-backdrop {
   position: absolute;
-  top: -24px; right: -24px; bottom: -24px; left: -24px;
-  inset: -24px;
-  background-image:
-    url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80');
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: url('./img/bg-meadow-blur.jpg');
   background-size: cover;
   background-position: center 60%;
-  filter: blur(14px) saturate(0.85) brightness(0.92);
-  transform: scale(1.08);
-  transition: background-image 0.8s ease, filter 0.8s ease;
   z-index: 0;
 }
 
 .nature-backdrop.bg-meadow {
-  background-image:
-    linear-gradient(180deg, rgba(115, 130, 138, 0.55) 0%, rgba(86, 98, 70, 0.45) 48%, rgba(168, 135, 88, 0.65) 100%),
-    url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1200&q=80');
+  background-image: url('./img/bg-meadow-blur.jpg');
 }
 
 .nature-backdrop.bg-olive {
-  background-image:
-    linear-gradient(180deg, rgba(122, 135, 125, 0.5) 0%, rgba(78, 92, 68, 0.55) 55%, rgba(110, 96, 72, 0.65) 100%),
-    url('https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=1200&q=80');
+  background-image: url('./img/bg-olive-blur.jpg');
 }
 
 .nature-backdrop.bg-mountains {
-  background-image:
-    linear-gradient(180deg, rgba(130, 145, 158, 0.5) 0%, rgba(90, 102, 110, 0.5) 55%, rgba(75, 68, 58, 0.7) 100%),
-    url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80');
+  background-image: url('./img/bg-mountains-blur.jpg');
 }
 
 .nature-backdrop.bg-dunes {
-  background-image:
-    linear-gradient(180deg, rgba(145, 132, 120, 0.45) 0%, rgba(166, 128, 92, 0.5) 55%, rgba(102, 74, 48, 0.7) 100%),
-    url('https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1200&q=80');
+  background-image: url('./img/bg-dunes-blur.jpg');
 }
 
 .left-overlay {
   position: absolute;
-  top: 0; right: 0; bottom: 0; left: 0;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   background: linear-gradient(
     180deg,
-    rgba(34, 40, 42, 0.42) 0%,
-    rgba(46, 52, 40, 0.22) 45%,
-    rgba(58, 42, 24, 0.52) 100%
+    rgba(30, 36, 38, 0.38) 0%,
+    rgba(42, 48, 36, 0.18) 45%,
+    rgba(52, 38, 22, 0.48) 100%
   );
   z-index: 1;
 }
@@ -190,63 +223,63 @@ body.sim-7inch .app-shell {
 .countdown-block {
   position: relative;
   z-index: 2;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
-/* Top-Left Clock & Turkish Dates — Scaled with cqh/cqw for 7-inch legibility */
+/* Top-Left Clock & Turkish Dates */
 .digital-clock {
-  font-family: var(--font-serif);
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-weight: 300;
-  font-size: 73.2px;
-  font-size: clamp(3.6rem, 12.2cqh, 6.8rem);
-  line-height: 0.9;
+  font-size: 88px;
+  line-height: 0.88;
   letter-spacing: -0.02em;
   color: #FFFFFF;
-  margin-bottom: 10.8px;
-  margin-bottom: clamp(8px, 1.8cqh, 18px);
-  font-variant-numeric: lining-nums;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.18);
+  margin-bottom: 12px;
+  -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
 }
 
 .date-gregorian {
-  font-family: var(--font-sans);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
   font-weight: 500;
-  font-size: 16.8px;
-  font-size: clamp(1.02rem, 2.8cqh, 1.38rem);
+  font-size: 19px;
   color: rgba(255, 255, 255, 0.96);
   letter-spacing: -0.01em;
-  margin-bottom: 3px;
+  margin-bottom: 4px;
 }
 
 .date-hijri {
-  font-family: var(--font-sans);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
   font-weight: 400;
-  font-size: 15.4px;
-  font-size: clamp(0.96rem, 2.55cqh, 1.26rem);
+  font-size: 17px;
   color: rgba(255, 255, 255, 0.88);
   letter-spacing: -0.01em;
 }
 
 /* Bottom-Left Next Prayer & Countdown */
 .next-prayer-label {
-  font-family: var(--font-sans);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
   font-weight: 500;
-  font-size: 16.2px;
-  font-size: clamp(1rem, 2.7cqh, 1.35rem);
+  font-size: 18.5px;
   color: rgba(255, 255, 255, 0.94);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
   letter-spacing: -0.01em;
 }
 
 .countdown-digits {
-  font-family: var(--font-serif);
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-weight: 300;
-  font-size: 70.8px;
-  font-size: clamp(3.5rem, 11.8cqh, 6.8rem);
-  line-height: 0.9;
+  font-size: 86px;
+  line-height: 0.88;
   letter-spacing: -0.02em;
   color: #FFFFFF;
-  font-variant-numeric: lining-nums;
-  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.2);
+  -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
 }
 
 /* ==========================================================================
@@ -254,66 +287,88 @@ body.sim-7inch .app-shell {
    ========================================================================== */
 .right-panel {
   width: 64%;
+  -webkit-flex: 0 0 64%;
   flex: 0 0 64%;
   height: 100%;
   position: relative;
+  display: -webkit-flex;
   display: flex;
+  -webkit-flex-direction: row;
   flex-direction: row;
-  display: grid;
-  grid-template-columns: 1fr 94px;
   background-color: var(--right-bg);
   color: var(--text-espresso);
-  transition: background-color 0.4s ease, color 0.4s ease;
+  transition: background-color 0.28s ease, color 0.28s ease;
   overflow: hidden;
 }
 
 /* Center Stage Views */
 .center-stage {
   display: none;
-  flex: 1;
-  min-width: 0;
-  width: 100%;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  width: calc(100% - 92px);
   height: 100%;
-  padding: 21.6px 32.8px;
-  padding: clamp(16px, 3.6cqh, 42px) clamp(20px, 3.2cqw, 52px);
+  padding: 20px 28px;
   overflow: hidden;
+  position: relative;
 }
 
-.center-stage.active-view {
+#viewHome.active-view {
+  display: -webkit-flex;
   display: flex;
+  -webkit-flex-direction: column;
   flex-direction: column;
+  -webkit-justify-content: center;
   justify-content: center;
+  -webkit-align-items: center;
   align-items: center;
+  -webkit-animation: fadeInSolid 0.26s ease both;
+  animation: fadeInSolid 0.26s ease both;
+}
+
+#viewQuotes.active-view,
+#viewSettings.active-view {
+  display: block;
+  -webkit-animation: fadeInSolid 0.26s ease both;
+  animation: fadeInSolid 0.26s ease both;
 }
 
 /* Home Quote View */
 .quote-wrapper {
-  max-width: 92%;
+  max-width: 94%;
+  max-height: calc(100% - 64px);
   text-align: center;
   cursor: pointer;
-  padding: 12px 16px;
+  padding: 12px 18px;
   border-radius: 16px;
-  transition: opacity 0.38s ease, transform 0.38s ease, background-color 0.2s ease;
+  transition: opacity 0.28s ease;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-align-items: center;
+  align-items: center;
 }
 
-.quote-wrapper:active {
+.quote-wrapper.is-pressed {
   background-color: rgba(74, 53, 37, 0.04);
 }
 
 .quote-wrapper.fade-out {
   opacity: 0;
-  transform: translateY(5px);
 }
 
 .verse-arabic {
-  font-family: var(--font-arabic);
+  font-family: 'Amiri', serif;
   font-weight: 400;
-  font-size: 25.2px;
-  font-size: clamp(1.45rem, 4.2cqh, 2.3rem);
-  line-height: 1.65;
+  font-size: 34px;
+  line-height: 1.6;
   color: var(--text-muted);
-  margin-bottom: 13.2px;
-  margin-bottom: clamp(10px, 2.2cqh, 22px);
+  margin-bottom: 14px;
+  max-width: 100%;
+  word-wrap: break-word;
 }
 
 .verse-arabic.hidden {
@@ -321,63 +376,98 @@ body.sim-7inch .app-shell {
 }
 
 .verse-text {
-  font-family: var(--font-serif);
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-weight: 400;
-  font-size: 43.2px;
-  font-size: clamp(2.15rem, 7.2cqh, 4.2rem);
-  line-height: 1.13;
+  font-size: 42px;
+  line-height: 1.18;
   letter-spacing: -0.015em;
   color: var(--text-espresso);
-  margin-bottom: 18px;
-  margin-bottom: clamp(14px, 3cqh, 30px);
-  text-wrap: balance;
+  margin-bottom: 16px;
+  max-width: 100%;
+  word-wrap: break-word;
 }
 
-/* Automatic scaling when a longer verse or Hadith is shown on 7-inch screen */
+/* Dynamic Multi-tier Typography Scaling based on length */
+.quote-wrapper.medium-quote .verse-arabic {
+  font-size: 30px;
+  line-height: 1.55;
+  margin-bottom: 12px;
+}
+
+.quote-wrapper.medium-quote .verse-text {
+  font-size: 35px;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+
 .quote-wrapper.long-quote .verse-arabic {
-  font-size: 21px;
-  font-size: clamp(1.25rem, 3.5cqh, 1.85rem);
-  margin-bottom: 9.6px;
-  margin-bottom: clamp(8px, 1.6cqh, 16px);
+  font-size: 26px;
+  line-height: 1.5;
+  margin-bottom: 10px;
 }
 
 .quote-wrapper.long-quote .verse-text {
-  font-size: 32.4px;
-  font-size: clamp(1.7rem, 5.4cqh, 3rem);
-  line-height: 1.18;
+  font-size: 28px;
+  line-height: 1.22;
+  margin-bottom: 12px;
+}
+
+.quote-wrapper.xlong-quote .verse-arabic {
+  font-size: 22px;
+  line-height: 1.45;
+  margin-bottom: 8px;
+}
+
+.quote-wrapper.xlong-quote .verse-text {
+  font-size: 23px;
+  line-height: 1.22;
+  margin-bottom: 10px;
 }
 
 .verse-source {
   display: block;
-  font-family: var(--font-sans);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
   font-style: normal;
   font-weight: 500;
-  font-size: 14.7px;
-  font-size: clamp(0.92rem, 2.2cqh, 1.12rem);
+  font-size: 14.5px;
   color: var(--text-muted);
   letter-spacing: 0.01em;
 }
 
 /* ==========================================================================
-   FAR-RIGHT VERTICAL SIDEBAR RAIL (Optimized for 7-inch Touch & Legibility)
+   FAR-RIGHT VERTICAL SIDEBAR RAIL (92px Wide, Touch-Optimized)
    ========================================================================== */
 .right-rail {
+  width: 92px;
+  -webkit-flex: 0 0 92px;
+  flex: 0 0 92px;
+  height: 100%;
+  display: -webkit-flex;
   display: flex;
+  -webkit-flex-direction: column;
   flex-direction: column;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
-  padding: 15.6px 8px;
-  padding: clamp(12px, 2.6cqh, 30px) 8px;
-  border-left: 1px solid rgba(74, 53, 37, 0.06);
+  padding: 14px 8px;
+  border-left: 1px solid rgba(74, 53, 37, 0.08);
   z-index: 5;
 }
 
 .rail-top {
+  display: -webkit-flex;
   display: flex;
+  -webkit-flex-direction: column;
   flex-direction: column;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 7.2px;
-  gap: clamp(4px, 1.2cqh, 14px);
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.rail-top > * + * {
+  margin-top: 6px;
 }
 
 .rail-icon-btn {
@@ -386,47 +476,45 @@ body.sim-7inch .app-shell {
   color: var(--text-muted);
   cursor: pointer;
   width: 44px;
-  height: 34.8px;
-  height: clamp(34px, 5.8cqh, 42px);
+  height: 35px;
   border-radius: 10px;
+  display: -webkit-flex;
   display: flex;
+  -webkit-align-items: center;
   align-items: center;
+  -webkit-justify-content: center;
   justify-content: center;
-  transition: color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
 }
 
-.rail-icon-btn:hover,
-.rail-icon-btn:active {
+.rail-icon-btn.is-pressed {
   color: var(--text-espresso);
   background-color: var(--right-surface);
 }
 
-.rail-icon-btn:active {
-  transform: scale(0.93);
+/* Middle Prayer Times Stack */
+.rail-prayers {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-align-items: center;
+  align-items: center;
+  width: 100%;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
-/* Middle Prayer Times Stack — Larger & clearer for 7-inch display */
-.rail-prayers {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8.1px;
-  gap: clamp(5px, 1.35cqh, 15px);
-  width: 100%;
+.rail-prayers > * + * {
+  margin-top: 6px;
 }
 
 .rail-prayer-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  display: block;
   text-align: center;
   width: 100%;
-  padding: 3px 4px;
-  padding: clamp(2px, 0.5cqh, 5px) 4px;
+  padding: 4px 4px;
   border-radius: 8px;
   color: var(--text-faded);
-  transition: color 0.3s ease, background-color 0.3s ease;
 }
 
 .rail-prayer-item.upcoming {
@@ -438,18 +526,15 @@ body.sim-7inch .app-shell {
   background-color: var(--right-surface);
 }
 
-.rail-prayer-item.active .p-abbr {
-  font-weight: 700;
-}
-
+.rail-prayer-item.active .p-abbr,
 .rail-prayer-item.active .p-time {
   font-weight: 700;
 }
 
 .p-abbr {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-size: clamp(0.75rem, 1.9cqh, 0.86rem);
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -457,22 +542,28 @@ body.sim-7inch .app-shell {
 }
 
 .p-time {
-  font-family: var(--font-sans);
-  font-size: 13.8px;
-  font-size: clamp(0.86rem, 2.2cqh, 1rem);
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13.5px;
   font-weight: 500;
   letter-spacing: 0.01em;
-  line-height: 1.15;
-  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
 
 /* Bottom Navigation Icons */
 .rail-nav {
+  display: -webkit-flex;
   display: flex;
+  -webkit-flex-direction: column;
   flex-direction: column;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 8.4px;
-  gap: clamp(6px, 1.4cqh, 16px);
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
+
+.rail-nav > * + * {
+  margin-top: 8px;
 }
 
 .nav-btn {
@@ -483,20 +574,13 @@ body.sim-7inch .app-shell {
   cursor: pointer;
   width: 48px;
   height: 36px;
-  height: clamp(36px, 6cqh, 44px);
   border-radius: 10px;
+  display: -webkit-flex;
   display: flex;
+  -webkit-align-items: center;
   align-items: center;
+  -webkit-justify-content: center;
   justify-content: center;
-  transition: color 0.2s ease, background-color 0.2s ease, transform 0.15s ease;
-}
-
-.nav-btn:hover {
-  color: var(--text-muted);
-}
-
-.nav-btn:active {
-  transform: scale(0.93);
 }
 
 .nav-btn.active {
@@ -508,89 +592,92 @@ body.sim-7inch .app-shell {
   content: '';
   position: absolute;
   left: -6px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2.5px;
+  top: 8px;
+  width: 3px;
   height: 20px;
   background-color: var(--text-espresso);
   border-radius: 2px;
 }
 
 /* ==========================================================================
-   MANEVİYAT HUB (Touch-Optimized for 7-inch Display)
+   MANEVİYAT HUB & SETTINGS PANELS (100% Block Layout — Never Overlaps in Chrome 49)
    ========================================================================== */
 .panel-container {
   width: 100%;
   height: 100%;
+  display: -webkit-flex;
   display: flex;
+  -webkit-flex-direction: column;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .panel-header {
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
+  -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
-  gap: 10px;
-  padding-bottom: 12px;
-  padding-bottom: clamp(10px, 2cqh, 14px);
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--right-border);
-  margin-bottom: 10.8px;
-  margin-bottom: clamp(8px, 1.8cqh, 12px);
+  margin-bottom: 10px;
 }
 
 .header-title-group {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: block;
+  margin-right: 10px;
 }
 
 .panel-title {
-  font-family: var(--font-serif);
+  font-family: 'Cormorant Garamond', Georgia, serif;
   font-weight: 600;
-  font-size: 23.2px;
-  font-size: clamp(1.45rem, 3.8cqh, 1.95rem);
+  font-size: 25px;
   color: var(--text-espresso);
-  line-height: 1.1;
+  line-height: 1.15;
+  margin-bottom: 2px;
 }
 
 .panel-subtitle {
-  font-family: var(--font-sans);
-  font-size: 12.2px;
-  font-size: clamp(0.76rem, 1.8cqh, 0.84rem);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
   color: var(--text-muted);
+  line-height: 1.3;
 }
 
 .diyanet-status {
-  font-size: 0.78rem;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--text-muted);
   background: var(--right-surface);
-  padding: 6px 12px;
+  padding: 5px 12px;
   border-radius: 99px;
 }
 
 .filter-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  display: block;
+  margin-top: 4px;
 }
 
 .pill {
+  display: inline-block;
   background: var(--right-surface);
   border: 1px solid var(--right-border);
   color: var(--text-espresso);
-  min-height: 38px;
-  padding: 6px 14px;
+  height: 34px;
+  line-height: 22px;
+  padding: 5px 13px;
+  margin-right: 5px;
+  margin-bottom: 4px;
   border-radius: 99px;
-  font-family: var(--font-sans);
-  font-size: 0.82rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s ease;
-}
-
-.pill:active {
-  transform: scale(0.96);
 }
 
 .pill.active {
@@ -601,12 +688,17 @@ body.sim-7inch .app-shell {
 
 /* Sub-toolbar (Search / Sub-category pills) */
 .hub-toolbar {
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
+  -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  margin-bottom: 10px;
 }
 
 .hub-toolbar:empty {
@@ -615,23 +707,23 @@ body.sim-7inch .app-shell {
 }
 
 .sub-pills {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  display: block;
 }
 
 .sub-pill {
+  display: inline-block;
   background: var(--right-surface);
   border: 1px solid transparent;
   color: var(--text-muted);
-  min-height: 34px;
-  padding: 5px 12px;
+  height: 32px;
+  padding: 5px 11px;
+  margin-right: 5px;
+  margin-bottom: 4px;
   border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.78rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.18s ease;
 }
 
 .sub-pill.active {
@@ -641,46 +733,37 @@ body.sim-7inch .app-shell {
 }
 
 .hub-search {
-  flex: 1;
-  min-width: 200px;
-  min-height: 36px;
+  -webkit-flex: 1 1 200px;
+  flex: 1 1 200px;
+  min-width: 180px;
+  height: 34px;
   background: var(--right-surface);
   border: 1px solid var(--right-border);
   color: var(--text-espresso);
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.84rem;
-  outline: none;
-}
-
-.hub-search:focus {
-  border-color: var(--text-espresso);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
 }
 
 .api-action-group {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  display: block;
 }
 
 .api-fetch-btn {
+  display: inline-block;
   background: var(--text-espresso);
   color: var(--right-bg);
   border: 1px solid var(--text-espresso);
-  min-height: 34px;
-  padding: 5px 12px;
+  height: 32px;
+  padding: 5px 11px;
+  margin-right: 5px;
+  margin-bottom: 4px;
   border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.76rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.18s ease, transform 0.15s ease;
-}
-
-.api-fetch-btn:active {
-  transform: scale(0.95);
 }
 
 .api-fetch-btn.secondary {
@@ -691,41 +774,44 @@ body.sim-7inch .app-shell {
 
 .api-fetch-btn:disabled {
   opacity: 0.55;
-  cursor: wait;
 }
 
-/* Scrollable Hub Area */
-.hub-content {
-  flex: 1;
+/* Scrollable Hub & Settings Areas — MUST BE display: block so Chrome 49 never squishes children! */
+.hub-content,
+.settings-scroll {
+  display: block !important;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   padding-right: 6px;
-  padding-bottom: 8px;
+  padding-bottom: 24px;
 }
 
-/* 1. BILINGUAL ZİKİR & DUA CARDS */
+.hub-fade {
+  -webkit-animation: fadeInSolid 0.25s ease;
+  animation: fadeInSolid 0.25s ease;
+}
+
+/* 1. BILINGUAL ZİKİR & DUA CARDS (Pure block layout with natural height) */
 .bilingual-card {
+  display: block !important;
+  height: auto !important;
   background: var(--right-surface);
   border: 1.5px solid transparent;
   border-radius: 14px;
-  padding: 15.6px 22px;
-  padding: clamp(14px, 2.6cqh, 18px) clamp(16px, 2.2cqw, 22px);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: border-color 0.2s ease, background-color 0.15s ease, transform 0.12s ease;
+  padding: 14px 18px;
+  margin-bottom: 12px;
 }
 
 .bilingual-card.clickable {
   cursor: pointer;
 }
 
-.bilingual-card.clickable:active {
-  transform: scale(0.99);
+.bilingual-card.clickable.is-pressed {
   background-color: var(--right-surface-hover);
 }
 
@@ -734,15 +820,18 @@ body.sim-7inch .app-shell {
 }
 
 .card-top-bar {
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 10px;
+  margin-bottom: 8px;
 }
 
 .card-badge {
-  font-family: var(--font-sans);
-  font-size: 0.76rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -750,28 +839,24 @@ body.sim-7inch .app-shell {
 }
 
 .zikir-counter-group {
+  display: -webkit-flex;
   display: flex;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 8px;
 }
 
 .zikir-counter-btn {
   background: var(--right-bg);
   border: 1.5px solid var(--right-border);
   color: var(--text-espresso);
-  min-height: 38px;
-  padding: 6px 16px;
+  height: 34px;
+  padding: 4px 14px;
+  margin-left: 6px;
   border-radius: 99px;
-  font-family: var(--font-sans);
-  font-size: 0.88rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
   cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.zikir-counter-btn:active {
-  transform: scale(0.94);
 }
 
 .zikir-counter-btn.done {
@@ -781,51 +866,51 @@ body.sim-7inch .app-shell {
 }
 
 .zikir-reset-btn {
+  display: inline-block;
   background: none;
   border: 1px solid var(--right-border);
   color: var(--text-muted);
-  min-height: 34px;
+  height: 32px;
   padding: 4px 10px;
   border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.76rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.zikir-reset-btn:active {
-  color: var(--text-espresso);
-  border-color: var(--text-espresso);
-}
-
 .card-arabic {
-  font-family: var(--font-arabic);
-  font-size: 24.8px;
-  font-size: clamp(1.55rem, 3.8cqh, 2.05rem);
-  line-height: 1.75;
+  display: block;
+  font-family: 'Amiri', serif;
+  font-size: 28px;
+  line-height: 1.7;
   color: var(--text-espresso);
   text-align: right;
   direction: rtl;
-  padding: 2px 0;
+  margin-bottom: 8px;
 }
 
 .card-turkish {
-  font-family: var(--font-serif);
-  font-size: 19.5px;
-  font-size: clamp(1.22rem, 2.8cqh, 1.45rem);
+  display: block;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px;
+  font-weight: 500;
   line-height: 1.35;
   color: var(--text-espresso);
   border-top: 1px solid var(--right-border);
   padding-top: 8px;
+  margin-bottom: 8px;
 }
 
 .card-footer-meta {
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
@@ -833,198 +918,238 @@ body.sim-7inch .app-shell {
   background: var(--right-bg);
   border: 1px solid var(--right-border);
   color: var(--text-espresso);
-  min-height: 34px;
-  padding: 5px 12px;
+  height: 30px;
+  padding: 4px 12px;
   border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.76rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
 }
 
-.pin-home-btn:active,
 .pin-home-btn.pinned {
   background: var(--text-espresso);
   color: var(--right-bg);
   border-color: var(--text-espresso);
 }
 
-/* 2. ESMÂÜ'L-HÜSNÂ (99 NAMES OF ALLAH) GRID & FEATURED CARD */
+/* 2. ESMÂÜ'L-HÜSNÂ (99 NAMES OF ALLAH) */
 .esma-featured {
   background: var(--right-surface);
   border: 1.5px solid var(--right-border);
   border-radius: 14px;
   padding: 14px 18px;
+  margin-bottom: 12px;
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 16px;
 }
 
 .esma-featured-info {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
+  display: block;
+  padding-right: 14px;
 }
 
 .esma-featured-tag {
-  font-size: 0.74rem;
+  display: block;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
+  margin-bottom: 2px;
 }
 
 .esma-featured-title {
-  font-family: var(--font-serif);
-  font-size: 1.55rem;
+  display: block;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 24px;
   font-weight: 600;
   color: var(--text-espresso);
+  margin-bottom: 3px;
 }
 
 .esma-featured-meaning {
-  font-family: var(--font-sans);
-  font-size: 0.84rem;
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
   line-height: 1.4;
   color: var(--text-espresso);
 }
 
 .esma-featured-arabic {
-  font-family: var(--font-arabic);
-  font-size: 2.5rem;
+  font-family: 'Amiri', serif;
+  font-size: 44px;
   color: var(--text-espresso);
   line-height: 1.2;
   padding-left: 10px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .esma-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
-  gap: 10px;
+  display: block;
+  overflow: hidden;
+}
+
+.esma-grid::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .esma-card {
+  display: block;
+  float: left;
+  width: 32%;
+  margin-right: 2%;
+  margin-bottom: 10px;
+  min-height: 128px;
   background: var(--right-surface);
   border: 1.5px solid transparent;
   border-radius: 12px;
   padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 6px;
   cursor: pointer;
-  transition: border-color 0.2s ease, transform 0.12s ease;
 }
 
-.esma-card:active {
-  transform: scale(0.97);
+.esma-card:nth-child(3n) {
+  margin-right: 0;
+}
+
+.esma-card:nth-child(3n+1) {
+  clear: left;
+}
+
+.esma-card.is-pressed {
   border-color: var(--text-espresso);
 }
 
 .esma-card-head {
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: baseline;
   align-items: baseline;
+  margin-bottom: 4px;
 }
 
 .esma-num {
-  font-family: var(--font-sans);
-  font-size: 0.76rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--text-muted);
 }
 
 .esma-ar {
-  font-family: var(--font-arabic);
-  font-size: 1.75rem;
+  font-family: 'Amiri', serif;
+  font-size: 29px;
   color: var(--text-espresso);
-  line-height: 1.25;
+  line-height: 1.2;
   direction: rtl;
 }
 
 .esma-tr {
-  font-family: var(--font-serif);
-  font-size: 1.3rem;
+  display: block;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 20px;
   font-weight: 600;
   color: var(--text-espresso);
+  margin-bottom: 3px;
 }
 
 .esma-desc {
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  line-height: 1.38;
+  display: block;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
+  line-height: 1.35;
   color: var(--text-muted);
 }
 
 /* ==========================================================================
-   SETTINGS VIEW (Touch-Friendly Controls)
+   SETTINGS VIEW (Pure Block Stacking — Never Squishes or Overlaps)
    ========================================================================== */
-.settings-scroll {
-  flex: 1;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-right: 6px;
-  padding-bottom: 8px;
-}
-
 .settings-group {
+  display: block !important;
+  height: auto !important;
   background: var(--right-surface);
   border-radius: 14px;
-  padding: 14px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  padding: 15px 18px;
+  margin-bottom: 14px;
 }
 
 .group-header {
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 8px;
+  -webkit-flex-wrap: wrap;
   flex-wrap: wrap;
+  margin-bottom: 12px;
 }
 
 .group-header h3 {
-  font-family: var(--font-sans);
-  font-size: 0.92rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--text-espresso);
 }
 
 .current-tag {
-  font-size: 0.82rem;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text-muted);
+  background: var(--right-bg);
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+
+.settings-desc {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.wifi-actions-row {
+  display: block;
+}
+
+.wifi-actions-row > * {
+  margin-right: 8px;
 }
 
 .city-chips,
 .backdrop-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: block;
+  margin-bottom: 10px;
 }
 
 .chip {
+  display: inline-block;
   background: var(--right-bg);
   border: 1px solid var(--right-border);
   color: var(--text-espresso);
-  min-height: 38px;
-  padding: 7px 14px;
+  height: 36px;
+  padding: 6px 14px;
+  margin-right: 6px;
+  margin-bottom: 6px;
   border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.84rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .chip.active,
-.chip:active {
+.chip.is-pressed {
   background: var(--text-espresso);
   color: var(--right-bg);
   border-color: var(--text-espresso);
@@ -1032,82 +1157,101 @@ body.sim-7inch .app-shell {
 
 .custom-location-row,
 .custom-audio-row {
+  display: -webkit-flex;
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  -webkit-align-items: center;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.custom-location-row > * + *,
+.custom-audio-row > * + * {
+  margin-left: 8px;
 }
 
 .text-input {
-  flex: 1;
-  min-width: 130px;
-  min-height: 40px;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  min-width: 110px;
+  height: 38px;
   background: var(--right-bg);
   border: 1px solid var(--right-border);
   color: var(--text-espresso);
-  padding: 8px 12px;
+  padding: 7px 12px;
   border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.86rem;
-  outline: none;
-}
-
-.text-input:focus {
-  border-color: var(--text-espresso);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
 }
 
 .action-btn {
+  display: inline-block;
   background: var(--text-espresso);
   color: var(--right-bg);
   border: none;
-  min-height: 40px;
-  padding: 8px 18px;
+  height: 38px;
+  padding: 7px 16px;
   border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.84rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-}
-
-.action-btn.secondary {
-  background: transparent;
-  color: var(--text-espresso);
-  border: 1px solid var(--text-espresso);
+  white-space: nowrap;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .text-btn {
+  display: inline-block;
   background: var(--right-bg);
   border: 1px solid var(--right-border);
   color: var(--text-espresso);
-  min-height: 36px;
-  padding: 6px 14px;
+  height: 34px;
+  padding: 5px 12px;
+  margin-left: 6px;
   border-radius: 8px;
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
 
+/* 2-Column Deterministic Muadhin Grid */
 .muadhin-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 8px;
+  display: block;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.muadhin-grid::after {
+  content: "";
+  display: table;
+  clear: both;
 }
 
 .muadhin-item {
+  float: left;
+  width: 49%;
+  margin-right: 2%;
+  margin-bottom: 8px;
   background: var(--right-bg);
   border: 1.5px solid var(--right-border);
   border-radius: 10px;
   padding: 10px 12px;
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 8px;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-.muadhin-item:active {
-  transform: scale(0.98);
+.muadhin-item:nth-child(2n) {
+  margin-right: 0;
+}
+
+.muadhin-item:nth-child(2n+1) {
+  clear: left;
 }
 
 .muadhin-item.active {
@@ -1117,14 +1261,16 @@ body.sim-7inch .app-shell {
 }
 
 .muadhin-item-info {
-  display: flex;
-  flex-direction: column;
+  display: block;
   min-width: 0;
-  flex: 1;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
+  padding-right: 8px;
 }
 
 .muadhin-item-title {
-  font-size: 0.85rem;
+  display: block;
+  font-size: 13px;
   font-weight: 700;
   margin-bottom: 2px;
   white-space: nowrap;
@@ -1133,33 +1279,46 @@ body.sim-7inch .app-shell {
 }
 
 .muadhin-item-sub {
-  font-size: 0.74rem;
-  opacity: 0.8;
+  display: block;
+  font-size: 11px;
+  opacity: 0.82;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .muadhin-item-actions {
+  display: -webkit-flex;
   display: flex;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 5px;
+  -webkit-flex-shrink: 0;
   flex-shrink: 0;
 }
 
 .muadhin-preview-btn,
 .muadhin-delete-btn {
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
   background: var(--right-surface);
   color: var(--text-espresso);
   border: 1px solid var(--right-border);
-  min-height: 32px;
-  padding: 4px 10px;
+  height: 32px;
+  min-width: 76px;
+  padding: 0 12px;
+  margin-left: 4px;
   border-radius: 7px;
-  font-family: var(--font-sans);
-  font-size: 0.74rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
   font-weight: 700;
+  white-space: nowrap;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .muadhin-item.active .muadhin-preview-btn,
@@ -1175,77 +1334,101 @@ body.sim-7inch .app-shell {
   border-color: #B85D3B !important;
 }
 
-/* Per-Prayer (Vakit Bazlı) Muadhin Customization */
+/* Per-Prayer & Add Custom Muadhin Boxes (Pure Block Layout) */
 .per-prayer-box,
 .add-muadhin-box {
+  display: block !important;
+  height: auto !important;
   background: var(--right-bg);
   border: 1px solid var(--right-border);
   border-radius: 10px;
   padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .sub-box-title {
-  font-size: 0.82rem;
+  display: block;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-espresso);
+  margin-bottom: 6px;
 }
 
 .per-prayer-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 6px;
+  display: block !important;
+  height: auto !important;
+  padding-top: 8px;
+  margin-top: 8px;
   border-top: 1px solid var(--right-border);
 }
 
 .per-prayer-list.hidden {
-  display: none;
+  display: none !important;
 }
 
 .per-prayer-row {
+  display: -webkit-flex;
   display: flex;
+  -webkit-align-items: center;
   align-items: center;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.per-prayer-row:last-child {
+  margin-bottom: 0;
 }
 
 .per-prayer-name {
-  font-size: 0.84rem;
+  font-size: 13px;
   font-weight: 700;
-  min-width: 105px;
+  width: 92px;
+  -webkit-flex: 0 0 92px;
+  flex: 0 0 92px;
   color: var(--text-espresso);
+  white-space: nowrap;
 }
 
 .per-prayer-select {
-  flex: 1;
-  min-width: 160px;
-  min-height: 36px;
+  -webkit-flex: 1 1 0%;
+  flex: 1 1 0%;
+  width: 0;
+  min-width: 0;
+  height: 32px;
   background: var(--right-surface);
   color: var(--text-espresso);
   border: 1px solid var(--right-border);
-  border-radius: 8px;
-  padding: 5px 10px;
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
+  border-radius: 7px;
+  padding: 4px 8px;
+  margin-right: 4px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
   font-weight: 600;
-  outline: none;
 }
 
 .per-prayer-mute-btn {
-  min-height: 36px;
-  padding: 5px 12px;
-  border-radius: 8px;
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  height: 32px;
+  min-width: 78px;
+  padding: 0 12px;
+  margin-left: 6px;
+  border-radius: 7px;
   border: 1px solid var(--right-border);
   background: var(--right-surface);
   color: var(--text-espresso);
-  font-family: var(--font-sans);
-  font-size: 0.76rem;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 11.5px;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .per-prayer-mute-btn.muted {
@@ -1254,45 +1437,50 @@ body.sim-7inch .app-shell {
 }
 
 .header-actions {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  display: block;
 }
 
 .volume-row {
+  display: -webkit-flex;
   display: flex;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 12px;
-  font-size: 0.86rem;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
 }
 
 .volume-row input[type="range"] {
-  flex: 1;
+  -webkit-flex: 1 1 auto;
+  flex: 1 1 auto;
   height: 24px;
-  accent-color: var(--text-espresso);
+  margin: 0 12px;
 }
 
 .file-label {
-  display: inline-flex;
-  align-items: center;
-  min-height: 40px;
+  display: inline-block;
+  height: 38px;
+  line-height: 22px;
   background: var(--right-bg);
   border: 1px dashed var(--text-muted);
   color: var(--text-espresso);
-  padding: 8px 14px;
+  padding: 7px 14px;
   border-radius: 8px;
-  font-size: 0.82rem;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
+  white-space: nowrap;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 .checkbox-row {
+  display: -webkit-flex;
   display: flex;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 10px;
-  min-height: 34px;
-  font-size: 0.86rem;
+  min-height: 30px;
+  font-size: 13px;
   color: var(--text-espresso);
   cursor: pointer;
 }
@@ -1300,24 +1488,30 @@ body.sim-7inch .app-shell {
 .checkbox-row input {
   width: 18px;
   height: 18px;
-  accent-color: var(--text-espresso);
+  margin-right: 10px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
 }
 
 /* Active Adhan Toast Banner */
 .adhan-toast {
   position: absolute;
-  bottom: 20px;
-  left: 24px;
+  bottom: 18px;
+  left: 22px;
   right: 108px;
   background: var(--text-espresso);
   color: var(--right-bg);
-  padding: 16px 22px;
+  padding: 14px 20px;
   border-radius: 12px;
+  display: -webkit-flex;
   display: flex;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
   z-index: 20;
+  -webkit-animation: fadeInSolid 0.25s ease;
+  animation: fadeInSolid 0.25s ease;
 }
 
 .adhan-toast.hidden {
@@ -1325,99 +1519,68 @@ body.sim-7inch .app-shell {
 }
 
 .toast-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: block;
 }
 
 .toast-text strong {
-  font-size: 1rem;
+  display: block;
+  font-size: 15px;
+  margin-bottom: 2px;
 }
 
 .toast-text span {
-  font-size: 0.84rem;
+  display: block;
+  font-size: 13px;
   opacity: 0.88;
-}
-
-.toast-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.expand-live-btn {
-  background: transparent;
-  color: var(--right-bg);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  min-height: 40px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-family: var(--font-sans);
-  font-weight: 600;
-  font-size: 0.84rem;
-  cursor: pointer;
 }
 
 .stop-btn {
   background: var(--right-bg);
   color: var(--text-espresso);
   border: none;
-  min-height: 40px;
-  padding: 8px 18px;
+  height: 36px;
+  padding: 6px 16px;
   border-radius: 8px;
   font-weight: 700;
-  font-size: 0.86rem;
+  font-size: 13px;
   cursor: pointer;
 }
 
 /* ============================================================================
-   TOP-CENTER NIGHT STANDBY & LIVE ADHAN TRIGGER BAR
+   TOP-CENTER NIGHT STANDBY BUTTON (Inside #viewHome Only — Zero Header Collision)
    ============================================================================ */
 .top-center-bar {
   position: absolute;
-  top: 13.2px;
-  top: clamp(10px, 2.2cqh, 18px);
+  top: 16px;
   left: 50%;
+  -webkit-transform: translateX(-50%);
   transform: translateX(-50%);
-  z-index: 35;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  z-index: 15;
 }
 
 .top-center-night-btn {
+  display: -webkit-inline-flex;
   display: inline-flex;
+  -webkit-align-items: center;
   align-items: center;
-  gap: 7px;
-  background: rgba(24, 20, 17, 0.82);
+  -webkit-justify-content: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: #241C16;
   color: #FBF8F3;
-  border: 1px solid rgba(251, 248, 243, 0.22);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  padding: 7.2px 16.4px;
-  padding: clamp(6px, 1.2cqh, 9px) clamp(13px, 1.6cqw, 18px);
+  border: 1px solid rgba(251, 248, 243, 0.24);
+  padding: 0;
   border-radius: 999px;
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-size: clamp(0.75rem, 1.12cqw, 0.84rem);
-  font-weight: 600;
-  letter-spacing: 0.03em;
   cursor: pointer;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
-  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-  white-space: nowrap;
 }
 
-.top-center-night-btn:hover,
-.top-center-night-btn:active {
-  background: rgba(12, 10, 8, 0.96);
-  transform: scale(1.03);
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.34);
+.top-center-night-btn svg {
+  margin: 0;
 }
 
 .top-center-night-btn.after-maghrib-pulse {
-  border-color: rgba(235, 205, 160, 0.65);
-  box-shadow: 0 0 0 3px rgba(235, 205, 160, 0.18), 0 8px 24px rgba(0, 0, 0, 0.3);
+  border-color: rgba(235, 205, 160, 0.7);
 }
 
 .top-center-night-btn.hidden {
@@ -1429,19 +1592,24 @@ body.sim-7inch .app-shell {
    ============================================================================ */
 .night-standby-overlay {
   position: absolute;
-  top: 0; right: 0; bottom: 0; left: 0;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
   z-index: 90;
   background: #000000;
-  color: rgba(234, 220, 200, 0.86);
+  color: #6B6761;
+  display: -webkit-flex;
   display: flex;
+  -webkit-flex-direction: column;
   flex-direction: column;
+  -webkit-justify-content: space-between;
   justify-content: space-between;
+  -webkit-align-items: center;
   align-items: center;
-  padding: 30px 51.2px;
-  padding: clamp(22px, 5cqh, 44px) clamp(24px, 5cqw, 60px);
-  user-select: none;
+  padding: 32px 48px;
   cursor: pointer;
+  -webkit-animation: fadeInSolid 0.35s ease;
   animation: fadeInSolid 0.35s ease;
 }
 
@@ -1451,73 +1619,70 @@ body.sim-7inch .app-shell {
 
 .night-standby-top {
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  text-align: center;
 }
 
 .night-standby-clock {
-  font-family: var(--font-sans);
-  font-size: 18.4px;
-  font-size: clamp(1rem, 1.8cqw, 1.35rem);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 19px;
   font-weight: 500;
   letter-spacing: 0.12em;
-  color: rgba(234, 220, 200, 0.38);
-  font-variant-numeric: tabular-nums;
+  color: #4A4743;
 }
 
 .night-standby-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   text-align: center;
-  gap: 10.8px;
-  gap: clamp(8px, 1.8cqh, 16px);
 }
 
 .night-standby-label {
-  font-family: var(--font-sans);
-  font-size: 20.5px;
-  font-size: clamp(1.05rem, 2cqw, 1.45rem);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 21px;
   font-weight: 500;
   letter-spacing: 0.04em;
-  color: rgba(234, 220, 200, 0.68);
+  color: #5A5752;
+  margin-bottom: 10px;
 }
 
 .night-standby-digits {
-  font-family: var(--font-serif);
-  font-size: 117.8px;
-  font-size: clamp(4.2rem, 11.5cqw, 8.2rem);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 118px;
   font-weight: 300;
   line-height: 0.95;
   letter-spacing: -0.02em;
-  color: rgba(242, 230, 212, 0.9);
-  font-variant-numeric: tabular-nums;
+  color: #6E6A64;
+  -webkit-font-feature-settings: "lnum" 1, "tnum" 1;
+  font-feature-settings: "lnum" 1, "tnum" 1;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .night-standby-schedule {
-  margin-top: 8.4px;
-  margin-top: clamp(6px, 1.4cqh, 14px);
-  font-family: var(--font-sans);
-  font-size: 13.8px;
-  font-size: clamp(0.84rem, 1.35cqw, 1.02rem);
+  margin-top: 14px;
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.05em;
-  color: rgba(234, 220, 200, 0.42);
+  color: #484541;
 }
 
 .night-standby-bottom {
   width: 100%;
-  display: flex;
-  justify-content: center;
+  text-align: center;
 }
 
 .night-standby-exit-hint {
-  font-family: var(--font-sans);
-  font-size: 11.8px;
-  font-size: clamp(0.74rem, 1.1cqw, 0.85rem);
+  font-family: 'Plus Jakarta Sans', 'Averta', sans-serif;
+  font-size: 12px;
   letter-spacing: 0.06em;
-  color: rgba(234, 220, 200, 0.25);
+  color: #363431;
+}
+
+@-webkit-keyframes fadeInSolid {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInSolid {
@@ -1539,7 +1704,7 @@ body.sim-7inch .app-shell {
   border-radius: 99px;
 }
 
-/* Hidden 1x1 YouTube IFrame API wrapper (must not be display:none so browsers allow audio playback) */
+/* Hidden 1x1 YouTube IFrame API wrapper */
 .yt-player-wrapper {
   position: fixed;
   bottom: 0;
@@ -1552,42 +1717,18 @@ body.sim-7inch .app-shell {
   z-index: -1;
 }
 
-@media (max-width: 720px) {
-  .app-shell {
-    grid-template-columns: 1fr;
-    grid-template-rows: 42% 58%;
-  }
+/* ==========================================================================
+   TOUCH: generic pressed feedback (set by JS only for real taps, never while scrolling)
+   ========================================================================== */
+button.is-pressed,
+.muadhin-card.is-pressed,
+.pill.is-pressed,
+.sub-pill.is-pressed {
+  opacity: 0.72;
 }
 
-@supports (display: grid) {
-  .left-panel, .right-panel { width: auto; flex: none; }
-}
-
-.right-rail {
-  width: 94px;
-  flex: 0 0 94px;
-}
-
-.esma-grid,
-.muadhin-grid {
-  display: flex;
-  flex-wrap: wrap;
-  display: grid;
-}
-
-.esma-card {
-  flex: 1 1 180px;
-  margin: 4px;
-}
-
-.muadhin-item {
-  flex: 1 1 200px;
-  margin: 4px;
-}
-
-@supports (display: grid) {
-  .esma-card,
-  .muadhin-item {
-    margin: 0;
-  }
+.settings-scroll,
+.hub-content {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
 }

@@ -6,7 +6,7 @@
  * - Hısnü'l-Müslim Zikir & Tesbihat + Esmâü'l-Hüsnâ (99 İsim)
  */
 
-// Polyfill for String.prototype.padStart (for Android 6.0.1 Chrome 49 WebView)
+// Polyfills for Android 6.0.1 Chrome 49 (49.0.2623.105) WebView
 if (!String.prototype.padStart) {
   String.prototype.padStart = function padStart(targetLength, padString) {
     targetLength = targetLength >> 0;
@@ -21,6 +21,182 @@ if (!String.prototype.padStart) {
     return padString.slice(0, targetLength) + String(this);
   };
 }
+
+if (!String.prototype.includes) {
+  String.prototype.includes = function (search, start) {
+    if (typeof start !== 'number') start = 0;
+    if (start + search.length > this.length) return false;
+    return this.indexOf(search, start) !== -1;
+  };
+}
+
+if (!Array.prototype.includes) {
+  Array.prototype.includes = function (searchElement, fromIndex) {
+    return this.indexOf(searchElement, fromIndex || 0) !== -1;
+  };
+}
+
+if (!Array.prototype.find) {
+  Array.prototype.find = function (predicate) {
+    if (this == null) throw new TypeError('Array.prototype.find called on null or undefined');
+    var list = Object(this);
+    var length = list.length >>> 0;
+    var thisArg = arguments[1];
+    for (var i = 0; i < length; i++) {
+      var value = list[i];
+      if (predicate.call(thisArg, value, i, list)) return value;
+    }
+    return undefined;
+  };
+}
+
+if (typeof Object.assign !== 'function') {
+  Object.assign = function (target) {
+    if (target == null) throw new TypeError('Cannot convert undefined or null to object');
+    var to = Object(target);
+    for (var index = 1; index < arguments.length; index++) {
+      var nextSource = arguments[index];
+      if (nextSource != null) {
+        for (var nextKey in nextSource) {
+          if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+            to[nextKey] = nextSource[nextKey];
+          }
+        }
+      }
+    }
+    return to;
+  };
+}
+
+if (window.NodeList && !NodeList.prototype.forEach) {
+  NodeList.prototype.forEach = Array.prototype.forEach;
+}
+
+function toggleClass(el, cls, force) {
+  if (!el || !el.classList) return;
+  var shouldAdd = typeof force === 'boolean' ? force : !el.classList.contains(cls);
+  if (shouldAdd) {
+    el.classList.add(cls);
+  } else {
+    el.classList.remove(cls);
+  }
+}
+
+function safePlayAudio(audioEl) {
+  return new Promise(function (resolve, reject) {
+    if (!audioEl) {
+      reject(new Error('No audio element'));
+      return;
+    }
+    var settled = false;
+    var cleanup = function () {
+      audioEl.removeEventListener('error', onError);
+      audioEl.removeEventListener('playing', onPlaying);
+    };
+    var onError = function (err) {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(err || new Error('Audio playback failed'));
+    };
+    var onPlaying = function () {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve();
+    };
+    audioEl.addEventListener('error', onError, false);
+    audioEl.addEventListener('playing', onPlaying, false);
+    try {
+      var playPromise = audioEl.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.then(onPlaying).catch(onError);
+      }
+    } catch (e) {
+      onError(e);
+    }
+  });
+}
+
+function setTextIfChanged(el, text) {
+  if (el && el.textContent !== text) {
+    el.textContent = text;
+  }
+}
+
+function xhrGetJson(url) {
+  return new Promise(function (resolve, reject) {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.timeout = 8000;
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            resolve(JSON.parse(xhr.responseText));
+          } catch (e) {
+            reject(e);
+          }
+        } else {
+          reject(new Error('HTTP ' + xhr.status));
+        }
+      };
+      xhr.onerror = function () {
+        reject(new Error('Network error'));
+      };
+      xhr.ontimeout = function () {
+        reject(new Error('Request timeout'));
+      };
+      xhr.send();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+function fetchJson(url) {
+  var isFileProtocol = window.location && window.location.protocol === 'file:';
+  var httpUrl = url.replace(/^https:\/\//i, 'http://');
+  if (isFileProtocol && httpUrl !== url) {
+    return xhrGetJson(httpUrl).catch(function () {
+      return xhrGetJson(url);
+    });
+  }
+  return xhrGetJson(url).catch(function (err) {
+    if (httpUrl !== url) {
+      return xhrGetJson(httpUrl);
+    }
+    throw err;
+  });
+}
+
+// Turkish Gregorian Weekday & Month Names (Independent of ICU locale tables)
+const DAYS_TR_SHORT = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+const MONTHS_TR_SHORT = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+
+// City Coordinates for Instant Offline Astronomical Diyanet Calculation
+const CITY_COORDS_MAP = {
+  amsterdam: [52.3676, 4.9041],
+  rotterdam: [51.9244, 4.4777],
+  utrecht: [52.0907, 5.1214],
+  'the hague': [52.0705, 4.3007],
+  'den haag': [52.0705, 4.3007],
+  eindhoven: [51.4416, 5.4697],
+  arnhem: [51.9851, 5.8987],
+  enschede: [52.2215, 6.8937],
+  tilburg: [51.5555, 5.0913],
+  almere: [52.3508, 5.2647],
+  istanbul: [41.0082, 28.9784],
+  'i̇stanbul': [41.0082, 28.9784],
+  ankara: [39.9334, 32.8597],
+  izmir: [38.4237, 27.1428],
+  bursa: [40.1885, 29.061],
+  konya: [37.8746, 32.4932],
+  berlin: [52.52, 13.405],
+  koln: [50.9375, 6.9603],
+  brussel: [50.8503, 4.3517],
+  brussels: [50.8503, 4.3517]
+};
 
 // Turkish Hijri Months Mapping
 const HIJRI_MONTHS_TR = {
@@ -656,8 +832,8 @@ const ADHAN_DUA_URL = './audio/dua_azan.mp3';
 
 // Application State
 const state = {
-  city: localStorage.getItem('clock_city') || 'Amsterdam',
-  country: localStorage.getItem('clock_country') || 'Netherlands',
+  city: 'Den Haag',
+  country: 'Netherlands',
   timings: null,
   hijriData: null,
   quoteIndex: parseInt(localStorage.getItem('clock_quote_idx') || '0', 10),
@@ -733,9 +909,10 @@ const elDuaToggle = document.getElementById('duaToggle');
 
 const elQuickAudioBtn = document.getElementById('quickAudioBtn');
 const elThemeToggleBtn = document.getElementById('themeToggleBtn');
-const elSimQuickBtn = document.getElementById('simQuickBtn');
-const elToggleSimBtn = document.getElementById('toggleSimBtn');
-const elExitSimBtn = document.getElementById('exitSimBtn');
+const elWifiQuickBtn = document.getElementById('wifiQuickBtn');
+const elWifiStatusBadge = document.getElementById('wifiStatusBadge');
+const elOpenWifiSettingsBtn = document.getElementById('openWifiSettingsBtn');
+const elSyncNowBtn = document.getElementById('syncNowBtn');
 
 const elAdhanBanner = document.getElementById('adhanBanner');
 const elBannerPrayerName = document.getElementById('bannerPrayerName');
@@ -762,6 +939,18 @@ function initApp() {
   }
   applyBackdrop(state.backdrop);
 
+  // Purge any legacy oversized quotes from localStorage
+  try {
+    const raw = localStorage.getItem('clock_cached_api_quotes');
+    if (raw) {
+      const list = JSON.parse(raw);
+      if (Array.isArray(list)) {
+        const cleaned = list.filter(item => item && item.text && item.text.length <= 130 && (!item.ar || item.ar.length <= 140));
+        localStorage.setItem('clock_cached_api_quotes', JSON.stringify(cleaned));
+      }
+    }
+  } catch (e) {}
+
   // Restore cached API verses & hadiths from localStorage
   restoreCachedApiContent();
 
@@ -774,20 +963,22 @@ function initApp() {
   updateClockAndDates();
   setInterval(updateClockAndDates, 1000);
 
-  // Automatically prefetch 3 fresh verses from AlQuran Cloud Diyanet API on startup
-  prefetchLiveQuranVerses(3);
+  // Automatically prefetch 3 fresh verses from AlQuran Cloud Diyanet API on web
+  if (!window.location || window.location.protocol !== 'file:') {
+    prefetchLiveQuranVerses(3);
+  }
 
   // Rotate quote every 5 minutes and fetch a new live verse in the background
   setInterval(() => {
     if (!state.customHomeItem) {
       cycleQuote();
-      fetchLiveAyahFromApi();
+      if (!window.location || window.location.protocol !== 'file:') {
+        fetchLiveAyahFromApi();
+      }
     }
   }, 300000);
 
-  elCurrentCityBadge.textContent = state.city;
-  elInputCity.value = state.city;
-  elInputCountry.value = state.country;
+  if (elCurrentCityBadge) elCurrentCityBadge.textContent = 'Lahey';
 
   adhanAudioPlayer.volume = state.volume / 100;
   duaAudioPlayer.volume = state.volume / 100;
@@ -837,49 +1028,47 @@ function formatSurahCitation(surahNum, ayahNum) {
 
 function fetchAyahByReference(ref) {
   const url = `https://api.alquran.cloud/v1/ayah/${encodeURIComponent(ref)}/editions/quran-uthmani,tr.diyanet`;
-  return fetch(url)
-    .then(response => {
-      if (!response.ok) throw new Error(`AlQuran API HTTP ${response.status}`);
-      return response.json();
-    })
-    .then(json => {
-      if (json.code === 200 && Array.isArray(json.data) && json.data.length >= 2) {
-        const arEdition = json.data[0];
-        const trEdition = json.data[1];
-        const surahNum =
-          (arEdition.surah && arEdition.surah.number) ||
-          (trEdition.surah && trEdition.surah.number) ||
-          1;
-        const ayahNum = arEdition.numberInSurah || trEdition.numberInSurah || 1;
-        return {
-          type: 'ayet',
-          ref: `${surahNum}:${ayahNum}`,
-          ar: arEdition.text.trim(),
-          text: trEdition.text.trim(),
-          source: formatSurahCitation(surahNum, ayahNum)
-        };
-      }
-      throw new Error('Invalid AlQuran API payload');
-    });
+  return fetchJson(url).then(json => {
+    if (json.code === 200 && Array.isArray(json.data) && json.data.length >= 2) {
+      const arEdition = json.data[0];
+      const trEdition = json.data[1];
+      const surahNum =
+        (arEdition.surah && arEdition.surah.number) ||
+        (trEdition.surah && trEdition.surah.number) ||
+        1;
+      const ayahNum = arEdition.numberInSurah || trEdition.numberInSurah || 1;
+      return {
+        type: 'ayet',
+        ref: `${surahNum}:${ayahNum}`,
+        ar: arEdition.text.trim(),
+        text: trEdition.text.trim(),
+        source: formatSurahCitation(surahNum, ayahNum)
+      };
+    }
+    throw new Error('Invalid AlQuran API payload');
+  });
 }
 
-function fetchLiveAyahFromApi(customRef = null) {
+function fetchLiveAyahFromApi(customRef) {
+  if (typeof customRef === "undefined") customRef = null;
   let targetRef = customRef;
   if (!targetRef) {
-    const existingRefs = new Set(VERSES_AND_HADITHS.map(v => v.ref).filter(Boolean));
-    const availableCurated = CURATED_AYAH_REFS.filter(r => !existingRefs.has(r));
-    if (availableCurated.length > 0 && Math.random() < 0.75) {
+    const existingRefs = VERSES_AND_HADITHS.map(v => v.ref).filter(Boolean);
+    const availableCurated = CURATED_AYAH_REFS.filter(r => existingRefs.indexOf(r) === -1);
+    if (availableCurated.length > 0) {
       targetRef = availableCurated[Math.floor(Math.random() * availableCurated.length)];
     } else {
-      targetRef = String(Math.floor(Math.random() * 6236) + 1);
+      targetRef = CURATED_AYAH_REFS[Math.floor(Math.random() * CURATED_AYAH_REFS.length)];
     }
   }
 
   return fetchAyahByReference(targetRef)
     .then(ayahObj => {
-      if (!customRef && ayahObj.text.length > 220) {
-        const fallbackRef = CURATED_AYAH_REFS[Math.floor(Math.random() * CURATED_AYAH_REFS.length)];
-        return fetchLiveAyahFromApi(fallbackRef);
+      // Discard verses that are too long to fit cleanly on screen
+      if (ayahObj.text.length > 125 || (ayahObj.ar && ayahObj.ar.length > 135)) {
+        if (!customRef) {
+          return fetchLiveAyahFromApi();
+        }
       }
 
       const alreadyExists = VERSES_AND_HADITHS.some(v => v.source === ayahObj.source);
@@ -895,7 +1084,8 @@ function fetchLiveAyahFromApi(customRef = null) {
     });
 }
 
-function prefetchLiveQuranVerses(count = 3) {
+function prefetchLiveQuranVerses(count) {
+  if (typeof count === "undefined") count = 3;
   let chain = Promise.resolve();
   for (let i = 0; i < count; i++) {
     chain = chain.then(() => fetchLiveAyahFromApi());
@@ -915,7 +1105,8 @@ function cleanHadithText(raw) {
     .trim();
 }
 
-function fetchLiveHadithFromApi(attempt = 0) {
+function fetchLiveHadithFromApi(attempt) {
+  if (typeof attempt === "undefined") attempt = 0;
   if (attempt >= 5) return Promise.resolve(null);
 
   const book = HADITH_API_BOOKS[Math.floor(Math.random() * HADITH_API_BOOKS.length)];
@@ -923,13 +1114,7 @@ function fetchLiveHadithFromApi(attempt = 0) {
   const trUrl = `https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/tur-${book.id}/${num}.min.json`;
   const arUrl = `https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/ara-${book.id}/${num}.min.json`;
 
-  return Promise.all([fetch(trUrl), fetch(arUrl)])
-    .then(responses => {
-      const trRes = responses[0];
-      const arRes = responses[1];
-      if (!trRes.ok || !arRes.ok) throw new Error('Hadith HTTP not ok');
-      return Promise.all([trRes.json(), arRes.json()]);
-    })
+  return Promise.all([fetchJson(trUrl), fetchJson(arUrl)])
     .then(jsons => {
       const trJson = jsons[0];
       const arJson = jsons[1];
@@ -941,7 +1126,7 @@ function fetchLiveHadithFromApi(attempt = 0) {
       const cleanedTr = cleanHadithText(trHadith);
       const cleanedAr = arHadith.trim();
 
-      if (cleanedTr.length >= 20 && cleanedTr.length <= 240 && cleanedAr.length >= 10) {
+      if (cleanedTr.length >= 20 && cleanedTr.length <= 125 && cleanedAr.length >= 10 && cleanedAr.length <= 135) {
         const hadithObj = {
           type: 'hadis',
           ar: cleanedAr,
@@ -977,7 +1162,14 @@ function restoreCachedApiContent() {
     const list = JSON.parse(raw);
     if (Array.isArray(list)) {
       list.reverse().forEach(item => {
-        if (item && item.text && item.source && !VERSES_AND_HADITHS.some(v => v.source === item.source)) {
+        if (
+          item &&
+          item.text &&
+          item.source &&
+          item.text.length <= 130 &&
+          (!item.ar || item.ar.length <= 140) &&
+          !VERSES_AND_HADITHS.some(v => v.source === item.source)
+        ) {
           VERSES_AND_HADITHS.unshift(item);
         }
       });
@@ -997,15 +1189,20 @@ function updateClockAndDates() {
   const minutes = String(now.getMinutes()).padStart(2, '0');
   const seconds = String(now.getSeconds()).padStart(2, '0');
 
-  elCurrentTime.textContent = `${hours}:${minutes}`;
+  setTextIfChanged(elCurrentTime, `${hours}:${minutes}`);
 
-  const weekdayShort = now.toLocaleDateString('tr-TR', { weekday: 'short' });
+  const weekdayShort = DAYS_TR_SHORT[now.getDay()] || 'Paz';
   const dayNum = now.getDate();
-  const monthShort = now.toLocaleDateString('tr-TR', { month: 'short' });
-  elGregorianDate.textContent = `${weekdayShort}, ${dayNum} ${monthShort}`;
+  const monthShort = MONTHS_TR_SHORT[now.getMonth()] || 'Oca';
+  setTextIfChanged(elGregorianDate, `${weekdayShort}, ${dayNum} ${monthShort}`);
 
   if (!state.hijriData) {
     updateFallbackHijri(now);
+  }
+
+  if (state.timings && state.timingsDate && state.timingsDate !== isoDate(now)) {
+    // New day: switch to the next day's official Diyanet times right after midnight
+    applyTodayFromTable();
   }
 
   if (state.timings) {
@@ -1016,64 +1213,296 @@ function updateClockAndDates() {
 
 function updateFallbackHijri(date) {
   try {
-    const parts = new Intl.DateTimeFormat('en-TN-u-ca-islamic-umalqura', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric'
-    }).formatToParts(date);
-
-    const dayPart = parts.find(p => p.type === 'day');
-    const monthPart = parts.find(p => p.type === 'month');
-    const yearPart = parts.find(p => p.type === 'year');
-    const day = (dayPart && dayPart.value) || '';
-    const monthNum = parseInt((monthPart && monthPart.value) || '1', 10);
-    const year = (yearPart && yearPart.value) || '';
-    const monthName = HIJRI_MONTHS_TR[monthNum] || '';
-    if (day && monthName && year) {
-      elHijriDate.textContent = `${day} ${monthName} ${year}`;
+    let day = date.getDate();
+    let month = date.getMonth();
+    let year = date.getFullYear();
+    let m = month + 1;
+    let y = year;
+    if (m < 3) {
+      y -= 1;
+      m += 12;
     }
+    const a = Math.floor(y / 100);
+    let b = 2 - a + Math.floor(a / 4);
+    if (y < 1583) b = 0;
+    const jd = Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + b - 1524;
+    const iyear = 10631.0 / 30.0;
+    const epochastro = 1948084;
+    const shift1 = 8.01 / 60.0;
+    let z = jd - epochastro;
+    const cyc = Math.floor(z / 10631.0);
+    z = z - 10631 * cyc;
+    const j = Math.floor((z - shift1) / iyear);
+    const iy = 30 * cyc + j;
+    z = z - Math.floor(j * iyear + shift1);
+    let im = Math.floor((z + 28.5001) / 29.5);
+    if (im === 13) im = 12;
+    const id = z - Math.floor(29.5001 * im - 29);
+    const monthName = HIJRI_MONTHS_TR[im] || 'Muharrem';
+    setTextIfChanged(elHijriDate, `${id} ${monthName} ${iy}`);
   } catch (e) {
     // Keep existing text
   }
 }
 
 /**
- * 2. DIYANET PRAYER TIMES API (AlAdhan Method 13 = Diyanet İşleri Başkanlığı)
+ * 2. DIYANET PRAYER TIMES API + ASTRONOMICAL OFFLINE DIYANET CALCULATOR
  */
-function loadPrayerTimes() {
-  const cacheKey = `diyanet_v2_${state.city}_${state.country}_${new Date().toDateString()}`;
-  const cached = localStorage.getItem(cacheKey);
+function computeOfflineDiyanetTimings(date, cityName) {
+  const key = String(cityName || 'amsterdam').trim().toLowerCase();
+  const coords = CITY_COORDS_MAP[key] || [52.3676, 4.9041];
+  const lat = coords[0];
+  const lng = coords[1];
 
-  if (cached) {
-    try {
-      const parsed = JSON.parse(cached);
-      applyPrayerData(parsed);
-      elSyncStatus.textContent = `Diyanet İşleri Başkanlığı (${state.city}) — Senkronize`;
-    } catch (e) {
-      console.warn('Cache parse error:', e);
-    }
+  const dtr = d => (d * Math.PI) / 180.0;
+  const rtd = r => (r * 180.0) / Math.PI;
+  const sin = d => Math.sin(dtr(d));
+  const cos = d => Math.cos(dtr(d));
+  const tan = d => Math.tan(dtr(d));
+  const arcsin = d => rtd(Math.asin(d));
+  const arccos = d => rtd(Math.acos(d));
+  const arccot = x => rtd(Math.atan(1.0 / x));
+  const arctan2 = (y, x) => rtd(Math.atan2(y, x));
+  const fix = (a, b) => {
+    const res = a - b * Math.floor(a / b);
+    return res < 0 ? res + b : res;
+  };
+  const fixAngle = a => fix(a, 360.0);
+  const fixHour = a => fix(a, 24.0);
+
+  let year = date.getFullYear();
+  let month = date.getMonth() + 1;
+  const day = date.getDate();
+  if (month <= 2) {
+    year -= 1;
+    month += 12;
+  }
+  const A = Math.floor(year / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  const jDate = Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + B - 1524.5 - lng / (15 * 24);
+
+  const sunPosition = jd => {
+    const D = jd - 2451545.0;
+    const g = fixAngle(357.529 + 0.98560028 * D);
+    const q = fixAngle(280.459 + 0.98564736 * D);
+    const L = fixAngle(q + 1.915 * sin(g) + 0.020 * sin(2 * g));
+    const e = 23.439 - 0.00000036 * D;
+    const RA = arctan2(cos(e) * sin(L), cos(L)) / 15.0;
+    const eqt = q / 15.0 - fixHour(RA);
+    const decl = arcsin(sin(e) * sin(L));
+    return { declination: decl, equation: eqt };
+  };
+
+  const midDay = t => fixHour(12.0 - sunPosition(jDate + t).equation);
+  const sunAngleTime = (angle, t, ccw) => {
+    const decl = sunPosition(jDate + t).declination;
+    const noon = midDay(t);
+    const val = (-sin(angle) - sin(decl) * sin(lat)) / (cos(decl) * cos(lat));
+    const clamped = Math.max(-1, Math.min(1, val));
+    const diff = (1.0 / 15.0) * arccos(clamped);
+    return noon + (ccw ? -diff : diff);
+  };
+  const asrTime = (factor, t) => {
+    const decl = sunPosition(jDate + t).declination;
+    const angle = -arccot(factor + tan(Math.abs(lat - decl)));
+    return sunAngleTime(angle, t, false);
+  };
+
+  let fajr = sunAngleTime(18.0, 5.0 / 24.0, true);
+  let sunrise = sunAngleTime(0.833, 6.0 / 24.0, true);
+  let dhuhr = midDay(12.0 / 24.0);
+  let asr = asrTime(1.08, 13.0 / 24.0);
+  let sunset = sunAngleTime(0.833, 18.0 / 24.0, false);
+  let maghrib = sunAngleTime(2.0, 18.0 / 24.0, false);
+  let isha = sunAngleTime(14.1, 18.0 / 24.0, false);
+
+  const tzOffsetHours = -date.getTimezoneOffset() / 60.0;
+  const shift = tzOffsetHours - lng / 15.0;
+  fajr += shift;
+  sunrise += shift;
+  dhuhr += shift + 5.0 / 60.0;
+  asr += shift;
+  sunset += shift;
+  maghrib += shift;
+  isha += shift;
+
+  // High-latitude AngleBased safeguard for Northern Europe
+  const nightTime = fixHour(sunrise - sunset);
+  const fajrPortion = (18.0 / 60.0) * nightTime;
+  if (isNaN(fajr) || fixHour(sunrise - fajr) > fajrPortion) {
+    fajr = sunrise - fajrPortion;
+  }
+  const ishaPortion = (14.1 / 60.0) * nightTime;
+  if (isNaN(isha) || fixHour(isha - sunset) > ishaPortion) {
+    isha = sunset + ishaPortion;
   }
 
-  elSyncStatus.textContent = 'Diyanet verileri güncelleniyor...';
-  const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(state.city)}&country=${encodeURIComponent(state.country)}&method=13`;
-  return fetch(url)
-    .then(response => {
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      return response.json();
-    })
-    .then(json => {
-      if (json.code === 200 && json.data) {
-        localStorage.setItem(cacheKey, JSON.stringify(json.data));
-        applyPrayerData(json.data);
-        elSyncStatus.textContent = `Diyanet İşleri Başkanlığı (${state.city}) — Aktif`;
+  const fmt = hVal => {
+    const fixed = fixHour(hVal + 0.5 / 60.0);
+    const hrs = Math.floor(fixed);
+    const mins = Math.floor((fixed - hrs) * 60);
+    return String(hrs).padStart(2, '0') + ':' + String(mins).padStart(2, '0');
+  };
+
+  return {
+    Fajr: fmt(fajr),
+    Sunrise: fmt(sunrise),
+    Dhuhr: fmt(dhuhr),
+    Asr: fmt(asr),
+    Maghrib: fmt(maghrib),
+    Isha: fmt(isha)
+  };
+}
+
+// ============================================================================
+// DIYANET LAHEY (DEN HAAG) — Official Diyanet table (location_id 13977)
+//  1. Bundled official table (diyanet-lahey.js)  2. Live sync (32 days, cached)
+//  3. Offline astronomical calc, corrected with the last known Diyanet offsets
+// ============================================================================
+const DIYANET_LAHEY_ID = 13977;
+const DIYANET_API_BASE = 'http://37.97.132.228:3000/api';
+const DIYANET_DAYS_KEY = 'diyanet_lahey_days_v1';
+const DIYANET_OFFSET_KEY = 'diyanet_lahey_offsets_v1';
+const PRAYER_KEYS_6 = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+let diyanetTableMemo = null;
+
+function loadDiyanetDayTable() {
+  if (diyanetTableMemo) return diyanetTableMemo;
+  const table = {};
+  const seed = window.DIYANET_LAHEY_SEED || {};
+  Object.keys(seed).forEach(k => {
+    table[k] = seed[k];
+  });
+  try {
+    const stored = JSON.parse(localStorage.getItem(DIYANET_DAYS_KEY) || '{}');
+    Object.keys(stored).forEach(k => {
+      table[k] = stored[k];
+    });
+  } catch (e) {
+    // ignore
+  }
+  diyanetTableMemo = table;
+  return table;
+}
+
+function saveDiyanetDays(apiDays) {
+  let stored = {};
+  try {
+    stored = JSON.parse(localStorage.getItem(DIYANET_DAYS_KEY) || '{}');
+  } catch (e) {
+    stored = {};
+  }
+  apiDays.forEach(d => {
+    if (!d || !d.date || !d.fajr) return;
+    stored[String(d.date).slice(0, 10)] = [d.fajr, d.sun || d.sunrise, d.dhuhr, d.asr, d.maghrib, d.isha];
+  });
+  // Keep storage small: drop days older than 7 days
+  const cutoff = isoDate(new Date(Date.now() - 7 * 86400000));
+  Object.keys(stored).forEach(k => {
+    if (k < cutoff) delete stored[k];
+  });
+  try {
+    localStorage.setItem(DIYANET_DAYS_KEY, JSON.stringify(stored));
+  } catch (e) {
+    // ignore quota errors
+  }
+  diyanetTableMemo = null;
+  state.tomorrowFajrKey = null;
+}
+
+function timingsFromRow(row) {
+  const t = {};
+  PRAYER_KEYS_6.forEach((k, i) => {
+    t[k] = row[i];
+  });
+  return t;
+}
+
+function toMinutes(hhmm) {
+  const p = String(hhmm || '0:0').split(':');
+  return Number(p[0]) * 60 + Number(p[1]);
+}
+
+function fromMinutes(mins) {
+  const m = ((Math.round(mins) % 1440) + 1440) % 1440;
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+
+// Remember how far the astronomical calculator deviates from official Diyanet times,
+// so that the offline fallback stays within ~1 minute of Diyanet.
+function rememberDiyanetOffsets(date, officialTimings) {
+  const calc = computeOfflineDiyanetTimings(date, 'den haag');
+  const offsets = {};
+  PRAYER_KEYS_6.forEach(k => {
+    offsets[k] = toMinutes(officialTimings[k]) - toMinutes(calc[k]);
+  });
+  try {
+    localStorage.setItem(DIYANET_OFFSET_KEY, JSON.stringify(offsets));
+  } catch (e) {
+    // ignore
+  }
+}
+
+function getDiyanetTimingsForDate(date, remember) {
+  const table = loadDiyanetDayTable();
+  const row = table[isoDate(date)];
+  if (row && row.length === 6) {
+    const t = timingsFromRow(row);
+    if (remember) rememberDiyanetOffsets(date, t);
+    return { timings: t, official: true };
+  }
+  const calc = computeOfflineDiyanetTimings(date, 'den haag');
+  let offsets = null;
+  try {
+    offsets = JSON.parse(localStorage.getItem(DIYANET_OFFSET_KEY) || 'null');
+  } catch (e) {
+    offsets = null;
+  }
+  if (offsets) {
+    PRAYER_KEYS_6.forEach(k => {
+      if (typeof offsets[k] === 'number' && Math.abs(offsets[k]) < 45) {
+        calc[k] = fromMinutes(toMinutes(calc[k]) + offsets[k]);
       }
+    });
+  }
+  return { timings: calc, official: false };
+}
+
+function setSyncStatus(text) {
+  if (elSyncStatus) elSyncStatus.textContent = text;
+}
+
+function applyTodayFromTable() {
+  const now = new Date();
+  const res = getDiyanetTimingsForDate(now, true);
+  state.timingsDate = isoDate(now);
+  applyPrayerData({ timings: res.timings });
+  return res.official;
+}
+
+function loadPrayerTimes() {
+  // 1. Instantly apply official Diyanet table (bundled + cached) — works fully offline
+  const official = applyTodayFromTable();
+  setSyncStatus(official ? 'Diyanet İşleri Başkanlığı (Lahey) — Resmî' : 'Diyanet (Lahey) — Çevrimdışı Hesaplama');
+  if (elWifiStatusBadge) elWifiStatusBadge.textContent = 'Bağlantı kontrol ediliyor...';
+
+  // 2. Refresh the next 32 days from the Diyanet server in the background
+  return xhrGetJson(`${DIYANET_API_BASE}/prayertimes?location_id=${DIYANET_LAHEY_ID}&lang=en`)
+    .then(days => {
+      if (!Array.isArray(days) || days.length === 0) throw new Error('Empty Diyanet response');
+      saveDiyanetDays(days);
+      applyTodayFromTable();
+      setSyncStatus('Diyanet İşleri Başkanlığı (Lahey) — Senkronize');
+      if (elWifiStatusBadge) elWifiStatusBadge.textContent = 'Wi-Fi Bağlı — Çevrimiçi';
     })
     .catch(error => {
-      console.warn('API fetch failed, using cached or fallback timings:', error);
-      if (!state.timings) {
-        applyFallbackTimings();
-        elSyncStatus.textContent = 'Çevrimdışı mod (Örnek vakitler)';
-      }
+      console.warn('Diyanet sync failed, using stored official table:', error);
+      if (elWifiStatusBadge) elWifiStatusBadge.textContent = 'Çevrimdışı — Kayıtlı Diyanet Vakitleri';
     });
 }
 
@@ -1105,19 +1534,7 @@ function applyPrayerData(data) {
 }
 
 function applyFallbackTimings() {
-  state.timings = {
-    Fajr: '05:14',
-    Sunrise: '06:58',
-    Dhuhr: '13:34',
-    Asr: '16:59',
-    Maghrib: '19:54',
-    Isha: '21:46'
-  };
-  PRAYERS_ORDER.forEach(p => {
-    const timeEl = document.getElementById(`time-${p.key}`);
-    if (timeEl) timeEl.textContent = state.timings[p.key];
-  });
-  updateCountdownAndSidebar(new Date());
+  applyTodayFromTable();
 }
 
 /**
@@ -1128,11 +1545,15 @@ function updateCountdownAndSidebar(now) {
 
   const schedule = PRAYERS_ORDER.map(p => {
     const clean = (state.timings[p.key] || '00:00').split(' ')[0];
-    const [h, m] = clean.split(':').map(Number);
+    const parts = clean.split(':');
+    const h = Number(parts[0] || 0);
+    const m = Number(parts[1] || 0);
     const target = new Date(now);
     target.setHours(h, m, 0, 0);
     return {
-      ...p,
+      key: p.key,
+      abbr: p.abbr,
+      nameTr: p.nameTr,
       timeStr: clean,
       dateObj: target
     };
@@ -1152,14 +1573,30 @@ function updateCountdownAndSidebar(now) {
   if (!nextPrayer) {
     const tomorrowFajr = new Date(schedule[0].dateObj);
     tomorrowFajr.setDate(tomorrowFajr.getDate() + 1);
+    let tomorrowFajrStr = schedule[0].timeStr;
+    try {
+      const tKey = isoDate(tomorrowFajr);
+      if (state.tomorrowFajrKey !== tKey) {
+        state.tomorrowFajrKey = tKey;
+        state.tomorrowFajrStr = getDiyanetTimingsForDate(tomorrowFajr, false).timings.Fajr;
+      }
+      tomorrowFajrStr = state.tomorrowFajrStr || tomorrowFajrStr;
+      const tp = tomorrowFajrStr.split(':');
+      tomorrowFajr.setHours(Number(tp[0] || 0), Number(tp[1] || 0), 0, 0);
+    } catch (e) {
+      // keep today's Fajr time as approximation
+    }
     nextPrayer = {
-      ...schedule[0],
+      key: schedule[0].key,
+      abbr: schedule[0].abbr,
+      nameTr: schedule[0].nameTr,
+      timeStr: tomorrowFajrStr,
       dateObj: tomorrowFajr
     };
     currentActiveKey = 'Fajr';
   }
 
-  elCountdownTitle.textContent = `${nextPrayer.nameTr} vaktine kalan süre`;
+  setTextIfChanged(elCountdownTitle, `${nextPrayer.nameTr} vaktine kalan süre`);
 
   const diffMs = Math.max(0, nextPrayer.dateObj - now);
   const totalSeconds = Math.floor(diffMs / 1000);
@@ -1167,18 +1604,21 @@ function updateCountdownAndSidebar(now) {
   const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
   const secs = String(totalSeconds % 60).padStart(2, '0');
 
-  elCountdownDigits.textContent = `${hrs}:${mins}.${secs}`;
+  setTextIfChanged(elCountdownDigits, `${hrs}:${mins}.${secs}`);
 
-  schedule.forEach(item => {
-    const el = document.getElementById(`item-${item.key}`);
-    if (!el) return;
-    el.classList.remove('active', 'upcoming');
-    if (item.key === currentActiveKey) {
-      el.classList.add('active');
-    } else if (now < item.dateObj) {
-      el.classList.add('upcoming');
-    }
-  });
+  if (state.lastActivePrayerKey !== currentActiveKey) {
+    state.lastActivePrayerKey = currentActiveKey;
+    schedule.forEach(item => {
+      const el = document.getElementById(`item-${item.key}`);
+      if (!el) return;
+      el.classList.remove('active', 'upcoming');
+      if (item.key === currentActiveKey) {
+        el.classList.add('active');
+      } else if (now < item.dateObj) {
+        el.classList.add('upcoming');
+      }
+    });
+  }
 
   // Update Top-Center Night Standby Button & Pitch-Black Night Screen (Yatsı -> Sabah)
   updateNightStandbyScreen(now, schedule);
@@ -1194,40 +1634,38 @@ function updateNightStandbyScreen(now, schedule) {
 
   const isEveningOrNight = now >= maghribItem.dateObj || now < sunriseItem.dateObj;
 
-  if (elNightStandbyTriggerBtn) {
-    elNightStandbyTriggerBtn.classList.toggle('after-maghrib-pulse', isEveningOrNight);
+  if (elNightStandbyTriggerBtn && state.lastEveningOrNight !== isEveningOrNight) {
+    state.lastEveningOrNight = isEveningOrNight;
+    toggleClass(elNightStandbyTriggerBtn, 'after-maghrib-pulse', isEveningOrNight);
     if (elNightStandbyBtnLabel) {
-      elNightStandbyBtnLabel.textContent = isEveningOrNight
-        ? 'Gece Modu (Yatsı & Sabah)'
-        : 'Gece Ekranı';
+      setTextIfChanged(
+        elNightStandbyBtnLabel,
+        isEveningOrNight ? 'Gece Modu (Yatsı & Sabah)' : 'Gece Ekranı'
+      );
     }
   }
+
+  if (!state.nightStandbyActive) return;
 
   if (elNightStandbyClock) {
     const hStr = String(now.getHours()).padStart(2, '0');
     const mStr = String(now.getMinutes()).padStart(2, '0');
-    elNightStandbyClock.textContent = `${hStr}:${mStr}`;
+    setTextIfChanged(elNightStandbyClock, `${hStr}:${mStr}`);
   }
 
-  // Determine whether we are counting down to Yatsı namazı or Sabah namazı (İmsak)
-  // After midnight (now < fajrItem.dateObj), Isha of the previous evening has already passed, so count down to today's Sabah (Fajr).
-  // Before midnight: if now < ishaItem.dateObj, count down to Yatsı namazı; once now >= ishaItem.dateObj, count down to tomorrow's Sabah namazı!
   let targetDateObj = null;
   let targetLabel = '';
   let scheduleSubText = '';
 
   if (now < fajrItem.dateObj) {
-    // After midnight, before Sabah (İmsak)
     targetDateObj = fajrItem.dateObj;
     targetLabel = 'Sabah namazına kalan süre';
     scheduleSubText = `Sabah (İmsak) Vakti · ${fajrItem.timeStr}   |   Güneş · ${sunriseItem.timeStr}`;
   } else if (now < ishaItem.dateObj) {
-    // Before Yatsı namazı -> Show countdown to Yatsı namazı (and show Sabah time underneath)
     targetDateObj = ishaItem.dateObj;
     targetLabel = 'Yatsı namazına kalan süre';
     scheduleSubText = `Yatsı Vakti · ${ishaItem.timeStr}   |   Sabah (İmsak) · ${fajrItem.timeStr}`;
   } else {
-    // After Yatsı namazı (before midnight) -> Show countdown to tomorrow's Sabah namazı
     const tomorrowFajr = new Date(fajrItem.dateObj);
     tomorrowFajr.setDate(tomorrowFajr.getDate() + 1);
     targetDateObj = tomorrowFajr;
@@ -1241,25 +1679,36 @@ function updateNightStandbyScreen(now, schedule) {
   const nMins = String(Math.floor((nightTotalSecs % 3600) / 60)).padStart(2, '0');
   const nSecs = String(nightTotalSecs % 60).padStart(2, '0');
 
-  if (elNightStandbyLabel) elNightStandbyLabel.textContent = targetLabel;
-  if (elNightStandbyDigits) elNightStandbyDigits.textContent = `${nHrs}:${nMins}.${nSecs}`;
-  if (elNightStandbySchedule) elNightStandbySchedule.textContent = scheduleSubText;
+  setTextIfChanged(elNightStandbyLabel, targetLabel);
+  setTextIfChanged(elNightStandbyDigits, `${nHrs}:${nMins}.${nSecs}`);
+  setTextIfChanged(elNightStandbySchedule, scheduleSubText);
 }
 
 /**
  * 4. HOME SCREEN QUOTE ENGINE (BILINGUAL ARABIC + TURKISH)
  */
-function renderActiveQuote(animate = true) {
+function renderActiveQuote(animate) {
+  if (typeof animate === "undefined") animate = true;
   const item = state.customHomeItem || VERSES_AND_HADITHS[state.quoteIndex] || VERSES_AND_HADITHS[0];
 
   const applyContent = () => {
     elVerseArabic.textContent = item.ar || '';
-    elVerseArabic.classList.toggle('hidden', !state.showHomeArabic || !item.ar);
+    toggleClass(elVerseArabic, 'hidden', !state.showHomeArabic || !item.ar);
     elVerseText.textContent = item.text;
     elVerseSource.textContent = item.source;
 
-    const isLong = (item.text && item.text.length > 62) || (item.ar && item.ar.length > 75);
-    elQuoteWrapper.classList.toggle('long-quote', Boolean(isLong));
+    const trLen = item.text ? item.text.length : 0;
+    const arLen = item.ar ? item.ar.length : 0;
+
+    elQuoteWrapper.classList.remove('medium-quote', 'long-quote', 'xlong-quote');
+
+    if (trLen > 130 || arLen > 140) {
+      elQuoteWrapper.classList.add('xlong-quote');
+    } else if (trLen > 85 || arLen > 90) {
+      elQuoteWrapper.classList.add('long-quote');
+    } else if (trLen > 50 || arLen > 55) {
+      elQuoteWrapper.classList.add('medium-quote');
+    }
   };
 
   if (!animate) {
@@ -1298,22 +1747,25 @@ function pinToHome(ar, text, source) {
 function renderHubView() {
   elHubToolbar.innerHTML = '';
   elHubContent.innerHTML = '';
+  elHubContent.classList.remove('hub-fade');
+  void elHubContent.offsetWidth;
+  elHubContent.classList.add('hub-fade');
 
   if (state.hubTab === 'zikir') {
     elHubMainTitle.textContent = 'Zikir ve Tesbihat';
-    elHubSubTitle.textContent = 'Hısnü’l-Müslim tesbihatı ve Kur’anî zikirler (Karta dokunarak sayacı artırın)';
+    if (elHubSubTitle) elHubSubTitle.textContent = '';
     renderZikirHub();
   } else if (state.hubTab === 'esma') {
     elHubMainTitle.textContent = 'Esmâü’l-Hüsnâ';
-    elHubSubTitle.textContent = 'Allah’ın 99 güzel ismi, Arapça yazılışı ve Türkçe manaları';
+    if (elHubSubTitle) elHubSubTitle.textContent = '';
     renderEsmaHub();
   } else if (state.hubTab === 'dua') {
     elHubMainTitle.textContent = 'Kur’an ve Sünnet Duaları';
-    elHubSubTitle.textContent = 'Diyanet Kur’an API’si ve Peygamber Efendimiz’den (s.a.v.) sahih dualar';
+    if (elHubSubTitle) elHubSubTitle.textContent = '';
     renderDuaHub();
   } else if (state.hubTab === 'ayet') {
-    elHubMainTitle.textContent = 'Canlı Ayet ve Hadis Seçkisi';
-    elHubSubTitle.textContent = 'Diyanet Kur’an API ve Hadis API ile canlı güncellenen seçki';
+    elHubMainTitle.textContent = 'Ayet ve Hadis Seçkisi';
+    if (elHubSubTitle) elHubSubTitle.textContent = '';
     renderAyetHub();
   }
 }
@@ -1382,7 +1834,11 @@ function renderZikirHub() {
     renderHubView();
   });
 
-  actionGroup.appendChild(fetchZikirAyahBtn);
+  // In offline file:// environment on clock, suppress external API fetch buttons
+  const isFileProto = window.location && window.location.protocol === 'file:';
+  if (!isFileProto) {
+    actionGroup.appendChild(fetchZikirAyahBtn);
+  }
   actionGroup.appendChild(resetAllBtn);
 
   elHubToolbar.appendChild(subPills);
@@ -1422,8 +1878,8 @@ function renderZikirHub() {
       localStorage.setItem('clock_zikir_counts', JSON.stringify(state.zikirCounts));
       incBtn.textContent = `${nextCount} / ${item.target}`;
       const reached = nextCount >= item.target;
-      incBtn.classList.toggle('done', reached);
-      card.classList.toggle('completed', reached);
+      toggleClass(incBtn, 'done', reached);
+      toggleClass(card, 'completed', reached);
     };
 
     card.addEventListener('click', incrementThisCard);
@@ -1577,8 +2033,11 @@ function renderDuaHub() {
       });
   });
 
+  const isFileProto = window.location && window.location.protocol === 'file:';
   elHubToolbar.appendChild(subPills);
-  elHubToolbar.appendChild(fetchDuaBtn);
+  if (!isFileProto) {
+    elHubToolbar.appendChild(fetchDuaBtn);
+  }
 
   DUA_LIST.forEach(dua => {
     if (state.duaFilter !== 'all' && dua.category !== state.duaFilter) return;
@@ -1661,11 +2120,16 @@ function renderAyetHub() {
     });
   });
 
-  apiGroup.appendChild(fetchAyahBtn);
-  apiGroup.appendChild(fetchHadithBtn);
+  const isFileProto = window.location && window.location.protocol === 'file:';
+  if (!isFileProto) {
+    apiGroup.appendChild(fetchAyahBtn);
+    apiGroup.appendChild(fetchHadithBtn);
+  }
 
   elHubToolbar.appendChild(subPills);
-  elHubToolbar.appendChild(apiGroup);
+  if (!isFileProto) {
+    elHubToolbar.appendChild(apiGroup);
+  }
 
   VERSES_AND_HADITHS.forEach((q, idx) => {
     if (state.ayetFilter !== 'all' && q.type !== state.ayetFilter) return;
@@ -1877,7 +2341,7 @@ function deleteCustomMuadhinFromDb(id) {
 }
 
 function getAllMuadhins() {
-  return [...MUADHIN_PRESETS, ...state.customMuadhins];
+  return MUADHIN_PRESETS.concat(state.customMuadhins);
 }
 
 function updateActiveMuadhinSummary() {
@@ -1960,7 +2424,7 @@ function renderMuadhinList() {
 
 function renderPerPrayerList() {
   if (!elPerPrayerList) return;
-  elPerPrayerList.classList.toggle('hidden', !state.perPrayerMode);
+  toggleClass(elPerPrayerList, 'hidden', !state.perPrayerMode);
   elPerPrayerList.innerHTML = '';
 
   const adhanPrayers = PRAYERS_ORDER.filter(p => p.key !== 'Sunrise');
@@ -1977,7 +2441,7 @@ function renderPerPrayerList() {
     const optionsHtml = allMuadhins
       .map(
         m =>
-          `<option value="${m.id}" ${m.id === selectedId ? 'selected' : ''}>${m.name} — ${m.muadhin}</option>`
+          `<option value="${m.id}" ${m.id === selectedId ? 'selected' : ''}>${m.name}</option>`
       )
       .join('');
 
@@ -2020,11 +2484,15 @@ function renderPerPrayerList() {
 
 function playAudioWithFallback(primaryUrl, fallbackUrl) {
   adhanAudioPlayer.src = primaryUrl;
-  adhanAudioPlayer.currentTime = 0;
-  return adhanAudioPlayer.play().catch(err => {
+  try {
+    adhanAudioPlayer.currentTime = 0;
+  } catch (e) {
+    // ignore before metadata loaded
+  }
+  return safePlayAudio(adhanAudioPlayer).catch(err => {
     if (fallbackUrl && fallbackUrl !== primaryUrl) {
       adhanAudioPlayer.src = fallbackUrl;
-      return adhanAudioPlayer.play();
+      return safePlayAudio(adhanAudioPlayer);
     }
     throw err;
   });
@@ -2112,7 +2580,7 @@ function triggerAdhanPlayback(prayerObj) {
   const onAdhanFinished = () => {
     if (state.playDua) {
       duaAudioPlayer.src = ADHAN_DUA_URL;
-      duaAudioPlayer.play().catch(() => {
+      safePlayAudio(duaAudioPlayer).catch(() => {
         stopAdhanPlayback();
       });
       duaAudioPlayer.onended = () => stopAdhanPlayback();
@@ -2148,10 +2616,16 @@ function stopAdhanPlayback() {
  */
 function switchView(targetId) {
   document.querySelectorAll('.center-stage').forEach(section => {
-    section.classList.toggle('active-view', section.id === targetId);
+    if (section.id === targetId) {
+      if (!section.classList.contains('active-view')) {
+        section.classList.add('active-view');
+      }
+    } else {
+      section.classList.remove('active-view');
+    }
   });
   document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.target === targetId);
+    toggleClass(btn, 'active', btn.dataset.target === targetId);
   });
 }
 
@@ -2161,17 +2635,76 @@ function applyBackdrop(bgKey) {
   elNatureBackdrop.className = `nature-backdrop bg-${bgKey}`;
 
   document.querySelectorAll('#backdropChips .chip').forEach(chip => {
-    chip.classList.toggle('active', chip.dataset.bg === bgKey);
+    toggleClass(chip, 'active', chip.dataset.bg === bgKey);
   });
 }
 
 function highlightCityChip() {
   document.querySelectorAll('#cityChips .chip').forEach(chip => {
-    chip.classList.toggle('active', chip.dataset.city.toLowerCase() === state.city.toLowerCase());
+    toggleClass(chip, 'active', chip.dataset.city.toLowerCase() === state.city.toLowerCase());
   });
 }
 
 function initEventListeners() {
+  // Prevent accidental clicks after a touch-scroll drag & suppress Android 6.0 focus box
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchMovedDuringGesture = false;
+
+  document.addEventListener(
+    'touchstart',
+    e => {
+      if (e.touches && e.touches.length > 0) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+        touchMovedDuringGesture = false;
+      }
+    },
+    true
+  );
+
+  document.addEventListener(
+    'touchmove',
+    e => {
+      if (e.touches && e.touches.length > 0) {
+        const dx = Math.abs(e.touches[0].clientX - touchStartX);
+        const dy = Math.abs(e.touches[0].clientY - touchStartY);
+        if (dx > 10 || dy > 10) {
+          touchMovedDuringGesture = true;
+        }
+      }
+    },
+    true
+  );
+
+  document.addEventListener(
+    'click',
+    e => {
+      if (touchMovedDuringGesture) {
+        touchMovedDuringGesture = false;
+        e.stopPropagation();
+        e.preventDefault();
+        return;
+      }
+      const tag = e.target && e.target.tagName ? e.target.tagName.toUpperCase() : '';
+      if (tag !== 'INPUT' && tag !== 'SELECT' && tag !== 'TEXTAREA') {
+        if (document.activeElement && document.activeElement !== document.body) {
+          const activeTag = document.activeElement.tagName
+            ? document.activeElement.tagName.toUpperCase()
+            : '';
+          if (activeTag !== 'INPUT' && activeTag !== 'SELECT' && activeTag !== 'TEXTAREA') {
+            try {
+              document.activeElement.blur();
+            } catch (err) {
+              // ignore
+            }
+          }
+        }
+      }
+    },
+    true
+  );
+
   elQuoteWrapper.addEventListener('click', () => cycleQuote());
 
   document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -2182,20 +2715,47 @@ function initEventListeners() {
   elQuickAudioBtn.addEventListener('click', () => {
     switchView('viewSettings');
     const muadhinSec = document.getElementById('muadhinSection');
-    if (muadhinSec) muadhinSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (muadhinSec) {
+      try {
+        muadhinSec.scrollIntoView(true);
+      } catch (e) {
+        // ignore
+      }
+    }
   });
 
-  const toggleSim7Inch = () => {
-    document.body.classList.toggle('sim-7inch');
-  };
+  // Top-right Wi-Fi button opens Settings scrolled directly to Wi-Fi section
+  if (elWifiQuickBtn) {
+    elWifiQuickBtn.addEventListener('click', () => {
+      switchView('viewSettings');
+      const wifiSec = document.getElementById('wifiSection');
+      if (wifiSec) {
+        try {
+          wifiSec.scrollIntoView(true);
+        } catch (e) {
+          // ignore
+        }
+      }
+    });
+  }
 
-  if (elSimQuickBtn) elSimQuickBtn.addEventListener('click', toggleSim7Inch);
-  if (elToggleSimBtn) elToggleSimBtn.addEventListener('click', toggleSim7Inch);
-  if (elExitSimBtn) elExitSimBtn.addEventListener('click', toggleSim7Inch);
+  // Open native clock Wi-Fi configuration screen
+  if (elOpenWifiSettingsBtn) {
+    elOpenWifiSettingsBtn.addEventListener('click', () => {
+      window.location.href = 'http://yij.outdoor.com/update';
+    });
+  }
+
+  // Sync prayer times now
+  if (elSyncNowBtn) {
+    elSyncNowBtn.addEventListener('click', () => {
+      loadPrayerTimes();
+    });
+  }
 
   elThemeToggleBtn.addEventListener('click', () => {
     state.nightMode = !state.nightMode;
-    document.body.classList.toggle('night-mode', state.nightMode);
+    toggleClass(document.body, 'night-mode', state.nightMode);
     localStorage.setItem('clock_night_mode', String(state.nightMode));
   });
 
@@ -2214,33 +2774,7 @@ function initEventListeners() {
     renderActiveQuote(false);
   });
 
-  document.querySelectorAll('#cityChips .chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      state.city = chip.dataset.city;
-      state.country = chip.dataset.country;
-      localStorage.setItem('clock_city', state.city);
-      localStorage.setItem('clock_country', state.country);
-      elCurrentCityBadge.textContent = state.city;
-      elInputCity.value = state.city;
-      elInputCountry.value = state.country;
-      highlightCityChip();
-      loadPrayerTimes();
-    });
-  });
-
-  elSaveLocationBtn.addEventListener('click', () => {
-    const newCity = elInputCity.value.trim();
-    const newCountry = elInputCountry.value.trim() || 'Netherlands';
-    if (newCity) {
-      state.city = newCity;
-      state.country = newCountry;
-      localStorage.setItem('clock_city', state.city);
-      localStorage.setItem('clock_country', state.country);
-      elCurrentCityBadge.textContent = state.city;
-      highlightCityChip();
-      loadPrayerTimes();
-    }
-  });
+  // Location is fixed to Lahey (Den Haag) — no city chips / manual input anymore
 
   document.querySelectorAll('#backdropChips .chip').forEach(chip => {
     chip.addEventListener('click', () => applyBackdrop(chip.dataset.bg));
@@ -2300,8 +2834,8 @@ function initEventListeners() {
     localStorage.setItem('clock_volume', String(state.volume));
   });
 
-  // Select local audio file (MP3/WAV) to add to custom Muadhins list
-  elCustomAudioFile.addEventListener('change', e => {
+  // Select local audio file (MP3/WAV) to add to custom Muadhins list (UI removed)
+  if (elCustomAudioFile) elCustomAudioFile.addEventListener('change', e => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     state.pendingFileBlob = file;
@@ -2313,8 +2847,8 @@ function initEventListeners() {
     }
   });
 
-  // Save custom Muadhin (File Blob, MP3 URL, or YouTube URL) permanently to IndexedDB
-  elSaveCustomAudioBtn.addEventListener('click', () => {
+  // Save custom Muadhin (File Blob, MP3 URL, or YouTube URL) permanently to IndexedDB (UI removed)
+  if (elSaveCustomAudioBtn) elSaveCustomAudioBtn.addEventListener('click', () => {
     const customName = ((elCustomMuadhinName && elCustomMuadhinName.value) || '').trim() || 'Özel Müezzin';
     const urlVal = ((elCustomAudioUrl && elCustomAudioUrl.value) || '').trim();
 
@@ -2376,4 +2910,8 @@ function initEventListeners() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', initApp);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
