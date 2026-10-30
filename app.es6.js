@@ -830,6 +830,44 @@ const MUADHIN_PRESETS = [
 
 const ADHAN_DUA_URL = './audio/dua_azan.mp3';
 
+// Legacy clock OS mute key mapping for 100% two-way sync
+const LEGACY_MUTE_KEYS = {
+  Fajr: 'fajrMuteKey',
+  Dhuhr: 'dhuhrMuteKey',
+  Asr: 'asrMuteKey',
+  Maghrib: 'maghribMuteKey',
+  Isha: 'ishaMuteKey'
+};
+
+function loadInitialMutedPrayers() {
+  let saved = {};
+  try {
+    saved = JSON.parse(localStorage.getItem('clock_muted_prayers') || '{}');
+  } catch (e) {
+    saved = {};
+  }
+  // Sync with original hardware clock keys (fajrMuteKey, etc.)
+  Object.keys(LEGACY_MUTE_KEYS).forEach(key => {
+    const legacyKey = LEGACY_MUTE_KEYS[key];
+    const legacyVal = localStorage.getItem(legacyKey);
+    if (legacyVal === 'true') {
+      saved[key] = true;
+    } else if (legacyVal === 'false' && saved[key] === undefined) {
+      saved[key] = false;
+    }
+  });
+  return saved;
+}
+
+function persistMutedPrayer(prayerKey, isMuted) {
+  state.mutedPrayers[prayerKey] = Boolean(isMuted);
+  localStorage.setItem('clock_muted_prayers', JSON.stringify(state.mutedPrayers));
+  const legacyKey = LEGACY_MUTE_KEYS[prayerKey];
+  if (legacyKey) {
+    localStorage.setItem(legacyKey, String(Boolean(isMuted)));
+  }
+}
+
 // Application State
 const state = {
   city: 'Den Haag',
@@ -853,7 +891,7 @@ const state = {
     localStorage.getItem('clock_per_prayer_map') ||
       '{"Fajr":"istanbul_saba","Dhuhr":"istanbul_rast","Asr":"istanbul_hicaz","Maghrib":"istanbul_segah","Isha":"istanbul_ussak"}'
   ),
-  mutedPrayers: JSON.parse(localStorage.getItem('clock_muted_prayers') || '{}'),
+  mutedPrayers: loadInitialMutedPrayers(),
   previewingMuadhinId: null,
   isYtPlaying: false,
   volume: parseInt(localStorage.getItem('clock_volume') || '85', 10),
@@ -1603,19 +1641,17 @@ function updateCountdownAndSidebar(now) {
 
   setTextIfChanged(elCountdownDigits, `${hrs}:${mins}.${secs}`);
 
-  if (state.lastActivePrayerKey !== currentActiveKey) {
-    state.lastActivePrayerKey = currentActiveKey;
-    schedule.forEach(item => {
-      const el = document.getElementById(`item-${item.key}`);
-      if (!el) return;
-      el.classList.remove('active', 'upcoming');
-      if (item.key === currentActiveKey) {
-        el.classList.add('active');
-      } else if (now < item.dateObj) {
-        el.classList.add('upcoming');
-      }
-    });
-  }
+  schedule.forEach(item => {
+    const el = document.getElementById(`item-${item.key}`);
+    if (!el) return;
+    el.classList.remove('active', 'upcoming');
+    if (item.key === currentActiveKey) {
+      el.classList.add('active');
+    } else if (now < item.dateObj) {
+      el.classList.add('upcoming');
+    }
+    toggleClass(el, 'is-muted', Boolean(state.mutedPrayers[item.key]));
+  });
 
   // Update Top-Center Night Standby Button & Pitch-Black Night Screen (Yatsı -> Sabah)
   updateNightStandbyScreen(now, schedule);
@@ -2469,9 +2505,9 @@ function renderPerPrayerList() {
 
     const muteEl = row.querySelector(`[data-prayer-mute="${p.key}"]`);
     muteEl.addEventListener('click', () => {
-      state.mutedPrayers[p.key] = !state.mutedPrayers[p.key];
-      localStorage.setItem('clock_muted_prayers', JSON.stringify(state.mutedPrayers));
+      persistMutedPrayer(p.key, !state.mutedPrayers[p.key]);
       renderPerPrayerList();
+      updateCountdownAndSidebar(new Date());
     });
 
     elPerPrayerList.appendChild(row);
@@ -2705,6 +2741,17 @@ function initEventListeners() {
 
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.target));
+  });
+
+  // Direct Tap on Prayer Items in Right Sidebar Toggles Mute / Unmute for that prayer!
+  document.querySelectorAll('.rail-prayer-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const pKey = item.dataset.prayer;
+      if (!pKey || pKey === 'Sunrise') return;
+      persistMutedPrayer(pKey, !state.mutedPrayers[pKey]);
+      renderPerPrayerList();
+      updateCountdownAndSidebar(new Date());
+    });
   });
 
   // Top-right speaker button opens Settings scrolled directly to Muadhin Studio
