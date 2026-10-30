@@ -859,12 +859,19 @@ function loadInitialMutedPrayers() {
   return saved;
 }
 
+function isPrayerMuted(prayerKey) {
+  if (!prayerKey || !state.mutedPrayers) return false;
+  const val = state.mutedPrayers[prayerKey];
+  return val === true || val === 'true';
+}
+
 function persistMutedPrayer(prayerKey, isMuted) {
-  state.mutedPrayers[prayerKey] = Boolean(isMuted);
+  const boolVal = Boolean(isMuted);
+  state.mutedPrayers[prayerKey] = boolVal;
   localStorage.setItem('clock_muted_prayers', JSON.stringify(state.mutedPrayers));
   const legacyKey = LEGACY_MUTE_KEYS[prayerKey];
   if (legacyKey) {
-    localStorage.setItem(legacyKey, String(Boolean(isMuted)));
+    localStorage.setItem(legacyKey, String(boolVal));
   }
 }
 
@@ -1656,7 +1663,7 @@ function updateCountdownAndSidebar(now) {
     } else if (now < item.dateObj) {
       el.classList.add('upcoming');
     }
-    toggleClass(el, 'is-muted', Boolean(state.mutedPrayers[item.key]));
+    toggleClass(el, 'is-muted', isPrayerMuted(item.key));
   });
 
   // Update Top-Center Night Standby Button & Pitch-Black Night Screen (Yatsı -> Sabah)
@@ -2478,7 +2485,7 @@ function renderPerPrayerList() {
 
   adhanPrayers.forEach(p => {
     const selectedId = state.perPrayerMap[p.key] || state.selectedMuadhinId || 'istanbul_saba';
-    const isMuted = Boolean(state.mutedPrayers[p.key]);
+    const isMuted = isPrayerMuted(p.key);
     const isRowPreviewing =
       (state.previewingPrayerKey === p.key || (state.previewingMuadhinId === selectedId && !state.previewingPrayerKey)) &&
       isAnyAudioPlaying();
@@ -2529,7 +2536,7 @@ function renderPerPrayerList() {
 
     const muteEl = row.querySelector(`[data-prayer-mute="${p.key}"]`);
     muteEl.addEventListener('click', () => {
-      persistMutedPrayer(p.key, !state.mutedPrayers[p.key]);
+      persistMutedPrayer(p.key, !isPrayerMuted(p.key));
       renderPerPrayerList();
       updateCountdownAndSidebar(new Date());
     });
@@ -2574,6 +2581,22 @@ function playAudioWithFallback(primaryUrl, fallbackUrl) {
 }
 
 function togglePreviewMuadhin(muadhinId, prayerKey = null) {
+  if (prayerKey && isPrayerMuted(prayerKey)) {
+    stopAdhanPlayback();
+    const prayerObj = PRAYERS_ORDER.find(p => p.key === prayerKey);
+    const prayerName = prayerObj ? prayerObj.nameTr : prayerKey;
+    elBannerPrayerName.textContent = `${prayerName} Vakti Sessizde`;
+    elBannerMuadhinName.textContent = 'Bu vakit sessizdedir (ezan sesi çalınmaz). Dinlemek için önce "Ezan Açık" yapınız.';
+    elAdhanBanner.classList.remove('hidden');
+    renderPerPrayerList();
+    setTimeout(() => {
+      if (!isAnyAudioPlaying()) {
+        elAdhanBanner.classList.add('hidden');
+      }
+    }, 4500);
+    return;
+  }
+
   if (state.previewingMuadhinId === muadhinId && (!prayerKey || state.previewingPrayerKey === prayerKey) && isAnyAudioPlaying()) {
     stopAdhanPlayback();
     return;
@@ -2641,7 +2664,10 @@ function checkPrayerAlarm(now, currentHM, seconds) {
 
   PRAYERS_ORDER.forEach(p => {
     if (p.key === 'Sunrise') return;
-    if (state.mutedPrayers[p.key]) return; // Respect per-prayer mute switch
+    if (isPrayerMuted(p.key)) {
+      console.log(`[checkPrayerAlarm] ${p.key} is muted. Skipping audio alarm.`);
+      return;
+    }
 
     const cleanTime = (state.timings[p.key] || '').split(' ')[0];
     const triggerId = `${now.toDateString()}_${p.key}`;
@@ -2655,6 +2681,18 @@ function checkPrayerAlarm(now, currentHM, seconds) {
 
 function triggerAdhanPlayback(prayerObj) {
   stopAdhanPlayback();
+
+  if (isPrayerMuted(prayerObj.key)) {
+    console.log(`[triggerAdhanPlayback] ${prayerObj.key} is muted. Suppressing audio.`);
+    elBannerPrayerName.textContent = `${prayerObj.nameTr} Vakti`;
+    elBannerMuadhinName.textContent = 'Ezan vakti (Sessiz mod etkin — ezan sesi kapalı)';
+    elAdhanBanner.classList.remove('hidden');
+    setTimeout(() => {
+      stopAdhanPlayback();
+    }, 15000);
+    return;
+  }
+
   const source = getSelectedAudioSource(prayerObj.key);
   state.isPlayingAdhan = true;
   state.previewingMuadhinId = null;
@@ -2813,7 +2851,7 @@ function initEventListeners() {
     item.addEventListener('click', () => {
       const pKey = item.dataset.prayer;
       if (!pKey || pKey === 'Sunrise') return;
-      persistMutedPrayer(pKey, !state.mutedPrayers[pKey]);
+      persistMutedPrayer(pKey, !isPrayerMuted(pKey));
       renderPerPrayerList();
       updateCountdownAndSidebar(new Date());
     });
