@@ -891,8 +891,14 @@ const state = {
     localStorage.getItem('clock_per_prayer_map') ||
       '{"Fajr":"istanbul_saba","Dhuhr":"istanbul_rast","Asr":"istanbul_hicaz","Maghrib":"istanbul_segah","Isha":"istanbul_ussak"}'
   ),
+  perPrayerVolume: JSON.parse(
+    localStorage.getItem('clock_per_prayer_volume') ||
+      '{"Fajr":85,"Dhuhr":85,"Asr":85,"Maghrib":85,"Isha":85}'
+  ),
   mutedPrayers: loadInitialMutedPrayers(),
   previewingMuadhinId: null,
+  previewingPrayerKey: null,
+  currentPlayingPrayerKey: null,
   isYtPlaying: false,
   volume: parseInt(localStorage.getItem('clock_volume') || '85', 10),
   playDua: localStorage.getItem('clock_play_dua') !== 'false',
@@ -2458,60 +2464,95 @@ function renderMuadhinList() {
   });
 }
 
+function getPrayerVolume(prayerKey) {
+  if (state.perPrayerVolume && state.perPrayerVolume[prayerKey] !== undefined) {
+    var v = parseInt(state.perPrayerVolume[prayerKey], 10);
+    if (!isNaN(v)) return Math.max(0, Math.min(100, v));
+  }
+  return state.volume;
+}
+
 function renderPerPrayerList() {
   if (!elPerPrayerList) return;
   toggleClass(elPerPrayerList, 'hidden', !state.perPrayerMode);
   elPerPrayerList.innerHTML = '';
 
-  const adhanPrayers = PRAYERS_ORDER.filter(p => p.key !== 'Sunrise');
-  const allMuadhins = getAllMuadhins();
+  var adhanPrayers = PRAYERS_ORDER.filter(function (p) { return p.key !== 'Sunrise'; });
+  var allMuadhins = getAllMuadhins();
 
-  adhanPrayers.forEach(p => {
-    const selectedId = state.perPrayerMap[p.key] || state.selectedMuadhinId || 'istanbul_saba';
-    const isMuted = Boolean(state.mutedPrayers[p.key]);
-    const isRowPreviewing = state.previewingMuadhinId === selectedId && isAnyAudioPlaying();
+  adhanPrayers.forEach(function (p) {
+    var selectedId = state.perPrayerMap[p.key] || state.selectedMuadhinId || 'istanbul_saba';
+    var isMuted = Boolean(state.mutedPrayers[p.key]);
+    var isRowPreviewing =
+      (state.previewingPrayerKey === p.key || (state.previewingMuadhinId === selectedId && !state.previewingPrayerKey)) &&
+      isAnyAudioPlaying();
+    var pVol = getPrayerVolume(p.key);
 
-    const row = document.createElement('div');
+    var row = document.createElement('div');
     row.className = 'per-prayer-row';
 
-    const optionsHtml = allMuadhins
-      .map(
-        m =>
-          `<option value="${m.id}" ${m.id === selectedId ? 'selected' : ''}>${m.name}</option>`
-      )
+    var optionsHtml = allMuadhins
+      .map(function (m) {
+        return '<option value="' + m.id + '" ' + (m.id === selectedId ? 'selected' : '') + '>' + m.name + '</option>';
+      })
       .join('');
 
-    row.innerHTML = `
-      <span class="per-prayer-name">${p.nameTr} Vakti</span>
-      <select class="per-prayer-select" data-prayer-select="${p.key}">
-        ${optionsHtml}
-      </select>
-      <button class="muadhin-preview-btn ${isRowPreviewing ? 'playing' : ''}" data-prayer-preview="${p.key}">
-        ${isRowPreviewing ? '■ Durdur' : '▶ Dinle'}
-      </button>
-      <button class="per-prayer-mute-btn ${isMuted ? 'muted' : ''}" data-prayer-mute="${p.key}">
-        ${isMuted ? 'Sessiz' : 'Ezan Açık'}
-      </button>
-    `;
+    row.innerHTML =
+      '<div class="per-prayer-main-line">' +
+        '<span class="per-prayer-name">' + p.nameTr + ' Vakti</span>' +
+        '<select class="per-prayer-select" data-prayer-select="' + p.key + '">' +
+          optionsHtml +
+        '</select>' +
+        '<button class="muadhin-preview-btn ' + (isRowPreviewing ? 'playing' : '') + '" data-prayer-preview="' + p.key + '">' +
+          (isRowPreviewing ? '■ Durdur' : '▶ Dinle') +
+        '</button>' +
+        '<button class="per-prayer-mute-btn ' + (isMuted ? 'muted' : '') + '" data-prayer-mute="' + p.key + '">' +
+          (isMuted ? 'Sessiz' : 'Ezan Açık') +
+        '</button>' +
+      '</div>' +
+      '<div class="per-prayer-vol-line">' +
+        '<span class="per-prayer-vol-label">Ses Seviyesi:</span>' +
+        '<input type="range" class="per-prayer-vol-slider" data-prayer-vol="' + p.key + '" min="0" max="100" value="' + pVol + '">' +
+        '<span class="per-prayer-vol-val" data-prayer-vol-val="' + p.key + '">' + pVol + '%</span>' +
+      '</div>';
 
-    const selectEl = row.querySelector(`[data-prayer-select="${p.key}"]`);
-    selectEl.addEventListener('change', e => {
+    var selectEl = row.querySelector('[data-prayer-select="' + p.key + '"]');
+    selectEl.addEventListener('change', function (e) {
       state.perPrayerMap[p.key] = e.target.value;
       localStorage.setItem('clock_per_prayer_map', JSON.stringify(state.perPrayerMap));
       renderPerPrayerList();
     });
 
-    const previewEl = row.querySelector(`[data-prayer-preview="${p.key}"]`);
-    previewEl.addEventListener('click', () => {
-      const targetMuadhinId = state.perPrayerMap[p.key] || state.selectedMuadhinId;
-      togglePreviewMuadhin(targetMuadhinId);
+    var previewEl = row.querySelector('[data-prayer-preview="' + p.key + '"]');
+    previewEl.addEventListener('click', function () {
+      var targetMuadhinId = state.perPrayerMap[p.key] || state.selectedMuadhinId;
+      togglePreviewMuadhin(targetMuadhinId, p.key);
     });
 
-    const muteEl = row.querySelector(`[data-prayer-mute="${p.key}"]`);
-    muteEl.addEventListener('click', () => {
+    var muteEl = row.querySelector('[data-prayer-mute="' + p.key + '"]');
+    muteEl.addEventListener('click', function () {
       persistMutedPrayer(p.key, !state.mutedPrayers[p.key]);
       renderPerPrayerList();
       updateCountdownAndSidebar(new Date());
+    });
+
+    var volSliderEl = row.querySelector('[data-prayer-vol="' + p.key + '"]');
+    var volValEl = row.querySelector('[data-prayer-vol-val="' + p.key + '"]');
+    volSliderEl.addEventListener('input', function (e) {
+      var newVol = parseInt(e.target.value, 10);
+      if (!state.perPrayerVolume) state.perPrayerVolume = {};
+      state.perPrayerVolume[p.key] = newVol;
+      if (volValEl) volValEl.textContent = newVol + '%';
+      localStorage.setItem('clock_per_prayer_volume', JSON.stringify(state.perPrayerVolume));
+
+      // Realtime adjust volume if this prayer is currently previewing or playing
+      if (state.previewingPrayerKey === p.key || (state.isPlayingAdhan && state.currentPlayingPrayerKey === p.key)) {
+        adhanAudioPlayer.volume = Math.max(0, Math.min(100, newVol)) / 100;
+        duaAudioPlayer.volume = Math.max(0, Math.min(100, newVol)) / 100;
+        if (ytPlayer && ytPlayerReady && typeof ytPlayer.setVolume === 'function') {
+          ytPlayer.setVolume(newVol);
+        }
+      }
     });
 
     elPerPrayerList.appendChild(row);
@@ -2525,7 +2566,7 @@ function playAudioWithFallback(primaryUrl, fallbackUrl) {
   } catch (e) {
     // ignore before metadata loaded
   }
-  return safePlayAudio(adhanAudioPlayer).catch(err => {
+  return safePlayAudio(adhanAudioPlayer).catch(function (err) {
     if (fallbackUrl && fallbackUrl !== primaryUrl) {
       adhanAudioPlayer.src = fallbackUrl;
       return safePlayAudio(adhanAudioPlayer);
@@ -2534,28 +2575,41 @@ function playAudioWithFallback(primaryUrl, fallbackUrl) {
   });
 }
 
-function togglePreviewMuadhin(muadhinId) {
-  if (state.previewingMuadhinId === muadhinId && isAnyAudioPlaying()) {
+function togglePreviewMuadhin(muadhinId, prayerKey) {
+  if (prayerKey === undefined) prayerKey = null;
+
+  if (state.previewingMuadhinId === muadhinId && (!prayerKey || state.previewingPrayerKey === prayerKey) && isAnyAudioPlaying()) {
     stopAdhanPlayback();
     return;
   }
 
   stopAdhanPlayback();
 
-  const all = getAllMuadhins();
-  const target = all.find(m => m.id === muadhinId) || all[0];
+  var all = getAllMuadhins();
+  var target = all.find(function (m) { return m.id === muadhinId; }) || all[0];
   state.previewingMuadhinId = target.id;
+  state.previewingPrayerKey = prayerKey;
 
-  elBannerPrayerName.textContent = 'Müezzin Önizleme';
-  elBannerMuadhinName.textContent = `${target.name} (${target.muadhin}) dinleniyor...`;
+  var vol = prayerKey ? getPrayerVolume(prayerKey) : state.volume;
+  adhanAudioPlayer.volume = Math.max(0, Math.min(100, vol)) / 100;
+  duaAudioPlayer.volume = Math.max(0, Math.min(100, vol)) / 100;
+  if (ytPlayer && ytPlayerReady && typeof ytPlayer.setVolume === 'function') {
+    ytPlayer.setVolume(vol);
+  }
+
+  var prayerObj = prayerKey ? PRAYERS_ORDER.find(function (p) { return p.key === prayerKey; }) : null;
+  elBannerPrayerName.textContent = prayerObj
+    ? prayerObj.nameTr + ' Vakti Önizleme (%' + vol + ')'
+    : 'Müezzin Önizleme (%' + vol + ')';
+  elBannerMuadhinName.textContent = target.name + ' (' + target.muadhin + ') dinleniyor...';
   elAdhanBanner.classList.remove('hidden');
   elTestAudioBtn.textContent = 'Durdur';
 
   // Play local/direct MP3 first (works 100% offline on clock & web); fallback to YouTube IFrame if needed
-  playAudioWithFallback(target.url, target.fallbackUrl).catch(err => {
+  playAudioWithFallback(target.url, target.fallbackUrl).catch(function (err) {
     console.warn('Direct audio preview fallback to YouTube:', err);
     if (target.youtubeId && window.location.protocol !== 'file:') {
-      playYouTubeVideo(target.youtubeId, () => stopAdhanPlayback());
+      playYouTubeVideo(target.youtubeId, function () { stopAdhanPlayback(); });
     } else {
       stopAdhanPlayback();
     }
@@ -2564,37 +2618,38 @@ function togglePreviewMuadhin(muadhinId) {
   renderMuadhinList();
   renderPerPrayerList();
 
-  adhanAudioPlayer.onended = () => {
+  adhanAudioPlayer.onended = function () {
     stopAdhanPlayback();
   };
 }
 
-function getSelectedAudioSource(prayerKey = 'Dhuhr') {
-  const all = getAllMuadhins();
-  const targetId = state.perPrayerMode
+function getSelectedAudioSource(prayerKey) {
+  if (!prayerKey) prayerKey = 'Dhuhr';
+  var all = getAllMuadhins();
+  var targetId = state.perPrayerMode
     ? state.perPrayerMap[prayerKey] || state.selectedMuadhinId
     : state.selectedMuadhinId;
 
-  const chosen = all.find(m => m.id === targetId) || all[0];
-  const primaryUrl = !state.perPrayerMode && prayerKey === 'Fajr' && chosen.fajrUrl ? chosen.fajrUrl : chosen.url;
+  var chosen = all.find(function (m) { return m.id === targetId; }) || all[0];
+  var primaryUrl = !state.perPrayerMode && prayerKey === 'Fajr' && chosen.fajrUrl ? chosen.fajrUrl : chosen.url;
 
   return {
     url: primaryUrl,
     fallbackUrl: chosen.fallbackUrl || chosen.url,
     youtubeId: chosen.youtubeId || null,
-    label: `${chosen.name} (${chosen.muadhin})`
+    label: chosen.name + ' (' + chosen.muadhin + ')'
   };
 }
 
 function checkPrayerAlarm(now, currentHM, seconds) {
   if (seconds !== '00' || !state.timings) return;
 
-  PRAYERS_ORDER.forEach(p => {
+  PRAYERS_ORDER.forEach(function (p) {
     if (p.key === 'Sunrise') return;
     if (state.mutedPrayers[p.key]) return; // Respect per-prayer mute switch
 
-    const cleanTime = (state.timings[p.key] || '').split(' ')[0];
-    const triggerId = `${now.toDateString()}_${p.key}`;
+    var cleanTime = (state.timings[p.key] || '').split(' ')[0];
+    var triggerId = now.toDateString() + '_' + p.key;
 
     if (cleanTime === currentHM && state.lastTriggeredPrayer !== triggerId) {
       state.lastTriggeredPrayer = triggerId;
@@ -2605,27 +2660,36 @@ function checkPrayerAlarm(now, currentHM, seconds) {
 
 function triggerAdhanPlayback(prayerObj) {
   stopAdhanPlayback();
-  const source = getSelectedAudioSource(prayerObj.key);
+  var source = getSelectedAudioSource(prayerObj.key);
   state.isPlayingAdhan = true;
   state.previewingMuadhinId = null;
+  state.previewingPrayerKey = null;
+  state.currentPlayingPrayerKey = prayerObj.key;
 
-  elBannerPrayerName.textContent = `${prayerObj.nameTr} Vakti`;
-  elBannerMuadhinName.textContent = `${source.label} okunuyor`;
+  var vol = getPrayerVolume(prayerObj.key);
+  adhanAudioPlayer.volume = Math.max(0, Math.min(100, vol)) / 100;
+  duaAudioPlayer.volume = Math.max(0, Math.min(100, vol)) / 100;
+  if (ytPlayer && ytPlayerReady && typeof ytPlayer.setVolume === 'function') {
+    ytPlayer.setVolume(vol);
+  }
+
+  elBannerPrayerName.textContent = prayerObj.nameTr + ' Vakti (%' + vol + ')';
+  elBannerMuadhinName.textContent = source.label + ' okunuyor';
   elAdhanBanner.classList.remove('hidden');
 
-  const onAdhanFinished = () => {
+  var onAdhanFinished = function () {
     if (state.playDua) {
       duaAudioPlayer.src = ADHAN_DUA_URL;
-      safePlayAudio(duaAudioPlayer).catch(() => {
+      safePlayAudio(duaAudioPlayer).catch(function () {
         stopAdhanPlayback();
       });
-      duaAudioPlayer.onended = () => stopAdhanPlayback();
+      duaAudioPlayer.onended = function () { stopAdhanPlayback(); };
     } else {
       stopAdhanPlayback();
     }
   };
 
-  playAudioWithFallback(source.url, source.fallbackUrl).catch(err => {
+  playAudioWithFallback(source.url, source.fallbackUrl).catch(function (err) {
     console.warn('Direct audio fallback to YouTube:', err);
     if (source.youtubeId && window.location.protocol !== 'file:') {
       playYouTubeVideo(source.youtubeId, onAdhanFinished);
@@ -2638,6 +2702,8 @@ function triggerAdhanPlayback(prayerObj) {
 function stopAdhanPlayback() {
   state.isPlayingAdhan = false;
   state.previewingMuadhinId = null;
+  state.previewingPrayerKey = null;
+  state.currentPlayingPrayerKey = null;
   adhanAudioPlayer.pause();
   duaAudioPlayer.pause();
   stopYouTubeVideo();
