@@ -911,6 +911,8 @@ const state = {
   playDua: localStorage.getItem('clock_play_dua') !== 'false',
   backdrop: localStorage.getItem('clock_backdrop') || 'meadow',
   nightMode: localStorage.getItem('clock_night_mode') === 'true',
+  autoNightMode: localStorage.getItem('clock_auto_night_mode') !== 'false',
+  lastAutoNightCalculated: null,
   nightStandbyActive: false,
   isPlayingAdhan: false,
   lastTriggeredPrayer: null,
@@ -943,6 +945,7 @@ const elInputCity = document.getElementById('inputCity');
 const elInputCountry = document.getElementById('inputCountry');
 const elSaveLocationBtn = document.getElementById('saveLocationBtn');
 const elShowHomeArabicToggle = document.getElementById('showHomeArabicToggle');
+const elAutoNightModeToggle = document.getElementById('autoNightModeToggle');
 
 const elMuadhinList = document.getElementById('muadhinList');
 const elPerPrayerModeToggle = document.getElementById('perPrayerModeToggle');
@@ -981,12 +984,41 @@ const elNightStandbySchedule = document.getElementById('nightStandbySchedule');
 const adhanAudioPlayer = document.getElementById('adhanAudioPlayer');
 const duaAudioPlayer = document.getElementById('duaAudioPlayer');
 
+let currentTargetVolumeRatio = Math.max(0, Math.min(100, state.volume || 85)) / 100;
+
+function setTargetPlaybackVolume(volPercent) {
+  currentTargetVolumeRatio = Math.max(0, Math.min(100, Number(volPercent) || 0)) / 100;
+  adhanAudioPlayer.volume = currentTargetVolumeRatio;
+  duaAudioPlayer.volume = currentTargetVolumeRatio;
+  if (ytPlayer && ytPlayerReady && typeof ytPlayer.setVolume === 'function') {
+    ytPlayer.setVolume(Math.round(currentTargetVolumeRatio * 100));
+  }
+}
+
+// Continuous volume lock: older WebViews (like Chrome 49 on Android) frequently reset
+// HTML5 audio.volume to 1.0 upon src reloads, metadata parsing, or streaming buffer updates.
+['play', 'playing', 'loadedmetadata', 'canplay', 'timeupdate'].forEach(evt => {
+  adhanAudioPlayer.addEventListener(evt, () => {
+    if (Math.abs(adhanAudioPlayer.volume - currentTargetVolumeRatio) > 0.01) {
+      adhanAudioPlayer.volume = currentTargetVolumeRatio;
+    }
+  });
+  duaAudioPlayer.addEventListener(evt, () => {
+    if (Math.abs(duaAudioPlayer.volume - currentTargetVolumeRatio) > 0.01) {
+      duaAudioPlayer.volume = currentTargetVolumeRatio;
+    }
+  });
+});
+
 /**
  * Initialize Application
  */
 function initApp() {
   if (state.nightMode) {
     document.body.classList.add('night-mode');
+  }
+  if (elAutoNightModeToggle) {
+    elAutoNightModeToggle.checked = state.autoNightMode;
   }
   applyBackdrop(state.backdrop);
 
@@ -1031,8 +1063,7 @@ function initApp() {
 
   if (elCurrentCityBadge) elCurrentCityBadge.textContent = 'Lahey';
 
-  adhanAudioPlayer.volume = state.volume / 100;
-  duaAudioPlayer.volume = state.volume / 100;
+  setTargetPlaybackVolume(state.volume);
   elVolumeSlider.value = state.volume;
   elVolumeValue.textContent = `${state.volume}%`;
   elDuaToggle.checked = state.playDua;
@@ -1668,6 +1699,26 @@ function updateCountdownAndSidebar(now) {
 
   // Update Top-Center Night Standby Button & Pitch-Black Night Screen (Yatsı -> Sabah)
   updateNightStandbyScreen(now, schedule);
+
+  // Automatic Sunrise / Sunset Dark Mode Switcher
+  checkAutoNightMode(now, schedule);
+}
+
+function checkAutoNightMode(now, schedule) {
+  if (!state.autoNightMode || !schedule) return;
+  const sunriseItem = schedule.find(s => s.key === 'Sunrise');
+  const maghribItem = schedule.find(s => s.key === 'Maghrib');
+  if (!sunriseItem || !maghribItem) return;
+
+  // Night starts at Maghrib (sunset) and ends at Sunrise (gündoğumu)
+  const shouldBeNight = now >= maghribItem.dateObj || now < sunriseItem.dateObj;
+
+  if (state.lastAutoNightCalculated !== shouldBeNight) {
+    state.lastAutoNightCalculated = shouldBeNight;
+    state.nightMode = shouldBeNight;
+    toggleClass(document.body, 'night-mode', state.nightMode);
+    localStorage.setItem('clock_night_mode', String(state.nightMode));
+  }
 }
 
 function updateNightStandbyScreen(now, schedule) {
@@ -2468,7 +2519,7 @@ function renderMuadhinList() {
 }
 
 function getPrayerVolume(prayerKey) {
-  if (state.perPrayerVolume && state.perPrayerVolume[prayerKey] !== undefined) {
+  if (state.perPrayerMode && state.perPrayerVolume && state.perPrayerVolume[prayerKey] !== undefined) {
     const v = parseInt(state.perPrayerVolume[prayerKey], 10);
     if (!isNaN(v)) return Math.max(0, Math.min(100, v));
   }
@@ -2552,11 +2603,7 @@ function renderPerPrayerList() {
 
       // Realtime adjust volume if this prayer is currently previewing or playing
       if (state.previewingPrayerKey === p.key || (state.isPlayingAdhan && state.currentPlayingPrayerKey === p.key)) {
-        adhanAudioPlayer.volume = Math.max(0, Math.min(100, newVol)) / 100;
-        duaAudioPlayer.volume = Math.max(0, Math.min(100, newVol)) / 100;
-        if (ytPlayer && ytPlayerReady && typeof ytPlayer.setVolume === 'function') {
-          ytPlayer.setVolume(newVol);
-        }
+        setTargetPlaybackVolume(newVol);
       }
     });
 
@@ -2566,15 +2613,21 @@ function renderPerPrayerList() {
 
 function playAudioWithFallback(primaryUrl, fallbackUrl) {
   adhanAudioPlayer.src = primaryUrl;
+  adhanAudioPlayer.volume = currentTargetVolumeRatio;
   try {
     adhanAudioPlayer.currentTime = 0;
   } catch (e) {
     // ignore before metadata loaded
   }
-  return safePlayAudio(adhanAudioPlayer).catch(err => {
+  return safePlayAudio(adhanAudioPlayer).then(() => {
+    adhanAudioPlayer.volume = currentTargetVolumeRatio;
+  }).catch(err => {
     if (fallbackUrl && fallbackUrl !== primaryUrl) {
       adhanAudioPlayer.src = fallbackUrl;
-      return safePlayAudio(adhanAudioPlayer);
+      adhanAudioPlayer.volume = currentTargetVolumeRatio;
+      return safePlayAudio(adhanAudioPlayer).then(() => {
+        adhanAudioPlayer.volume = currentTargetVolumeRatio;
+      });
     }
     throw err;
   });
@@ -2610,11 +2663,7 @@ function togglePreviewMuadhin(muadhinId, prayerKey = null) {
   state.previewingPrayerKey = prayerKey;
 
   const vol = prayerKey ? getPrayerVolume(prayerKey) : state.volume;
-  adhanAudioPlayer.volume = Math.max(0, Math.min(100, vol)) / 100;
-  duaAudioPlayer.volume = Math.max(0, Math.min(100, vol)) / 100;
-  if (ytPlayer && ytPlayerReady && typeof ytPlayer.setVolume === 'function') {
-    ytPlayer.setVolume(vol);
-  }
+  setTargetPlaybackVolume(vol);
 
   const prayerObj = prayerKey ? PRAYERS_ORDER.find(p => p.key === prayerKey) : null;
   elBannerPrayerName.textContent = prayerObj
@@ -2700,11 +2749,7 @@ function triggerAdhanPlayback(prayerObj) {
   state.currentPlayingPrayerKey = prayerObj.key;
 
   const vol = getPrayerVolume(prayerObj.key);
-  adhanAudioPlayer.volume = Math.max(0, Math.min(100, vol)) / 100;
-  duaAudioPlayer.volume = Math.max(0, Math.min(100, vol)) / 100;
-  if (ytPlayer && ytPlayerReady && typeof ytPlayer.setVolume === 'function') {
-    ytPlayer.setVolume(vol);
-  }
+  setTargetPlaybackVolume(vol);
 
   elBannerPrayerName.textContent = `${prayerObj.nameTr} Vakti (%${vol})`;
   elBannerMuadhinName.textContent = `${source.label} okunuyor`;
@@ -2713,7 +2758,10 @@ function triggerAdhanPlayback(prayerObj) {
   const onAdhanFinished = () => {
     if (state.playDua) {
       duaAudioPlayer.src = ADHAN_DUA_URL;
-      safePlayAudio(duaAudioPlayer).catch(() => {
+      setTargetPlaybackVolume(vol);
+      safePlayAudio(duaAudioPlayer).then(() => {
+        setTargetPlaybackVolume(vol);
+      }).catch(() => {
         stopAdhanPlayback();
       });
       duaAudioPlayer.onended = () => stopAdhanPlayback();
@@ -2737,6 +2785,7 @@ function stopAdhanPlayback() {
   state.previewingMuadhinId = null;
   state.previewingPrayerKey = null;
   state.currentPlayingPrayerKey = null;
+  setTargetPlaybackVolume(state.volume);
   adhanAudioPlayer.pause();
   duaAudioPlayer.pause();
   stopYouTubeVideo();
@@ -2920,6 +2969,15 @@ function initEventListeners() {
     renderActiveQuote(false);
   });
 
+  if (elAutoNightModeToggle) {
+    elAutoNightModeToggle.addEventListener('change', e => {
+      state.autoNightMode = e.target.checked;
+      localStorage.setItem('clock_auto_night_mode', String(state.autoNightMode));
+      state.lastAutoNightCalculated = null;
+      updateCountdownAndSidebar(new Date());
+    });
+  }
+
   // Location is fixed to Lahey (Den Haag) — no city chips / manual input anymore
 
   document.querySelectorAll('#backdropChips .chip').forEach(chip => {
@@ -2972,12 +3030,17 @@ function initEventListeners() {
   elVolumeSlider.addEventListener('input', e => {
     state.volume = parseInt(e.target.value, 10);
     elVolumeValue.textContent = `${state.volume}%`;
-    adhanAudioPlayer.volume = state.volume / 100;
-    duaAudioPlayer.volume = state.volume / 100;
-    if (ytPlayer && ytPlayerReady && typeof ytPlayer.setVolume === 'function') {
-      ytPlayer.setVolume(state.volume);
-    }
+    setTargetPlaybackVolume(state.volume);
     localStorage.setItem('clock_volume', String(state.volume));
+
+    if (!state.perPrayerVolume) state.perPrayerVolume = {};
+    PRAYERS_ORDER.forEach(p => {
+      if (p.key !== 'Sunrise') {
+        state.perPrayerVolume[p.key] = state.volume;
+      }
+    });
+    localStorage.setItem('clock_per_prayer_volume', JSON.stringify(state.perPrayerVolume));
+    renderPerPrayerList();
   });
 
   // Select local audio file (MP3/WAV) to add to custom Muadhins list (UI removed)
