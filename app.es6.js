@@ -905,9 +905,16 @@ const state = {
   mutedPrayers: loadInitialMutedPrayers(),
   previewingMuadhinId: null,
   previewingPrayerKey: null,
+  isPreviewingDua: false,
   currentPlayingPrayerKey: null,
   isYtPlaying: false,
-  volume: parseInt(localStorage.getItem('clock_volume') || '85', 10),
+  volume: parseInt(localStorage.getItem('clock_volume') !== null ? localStorage.getItem('clock_volume') : '85', 10),
+  duaVolume: parseInt(
+    localStorage.getItem('clock_dua_volume') !== null
+      ? localStorage.getItem('clock_dua_volume')
+      : (localStorage.getItem('clock_volume') !== null ? localStorage.getItem('clock_volume') : '50'),
+    10
+  ),
   playDua: localStorage.getItem('clock_play_dua') !== 'false',
   backdrop: localStorage.getItem('clock_backdrop') || 'meadow',
   nightMode: localStorage.getItem('clock_night_mode') === 'true',
@@ -960,6 +967,9 @@ const elCustomAudioFile = document.getElementById('customAudioFile');
 const elCustomAudioUrl = document.getElementById('customAudioUrl');
 const elSaveCustomAudioBtn = document.getElementById('saveCustomAudioBtn');
 const elDuaToggle = document.getElementById('duaToggle');
+const elDuaVolumeSlider = document.getElementById('duaVolumeSlider');
+const elDuaVolumeValue = document.getElementById('duaVolumeValue');
+const elTestDuaBtn = document.getElementById('testDuaBtn');
 
 const elQuickAudioBtn = document.getElementById('quickAudioBtn');
 const elThemeToggleBtn = document.getElementById('themeToggleBtn');
@@ -984,15 +994,22 @@ const elNightStandbySchedule = document.getElementById('nightStandbySchedule');
 const adhanAudioPlayer = document.getElementById('adhanAudioPlayer');
 const duaAudioPlayer = document.getElementById('duaAudioPlayer');
 
-let currentTargetVolumeRatio = Math.max(0, Math.min(100, state.volume || 85)) / 100;
+let currentTargetVolumeRatio = Math.max(0, Math.min(100, (typeof state.volume === 'number' && !isNaN(state.volume)) ? state.volume : 85)) / 100;
+let currentTargetDuaVolumeRatio = Math.max(0, Math.min(100, (typeof state.duaVolume === 'number' && !isNaN(state.duaVolume)) ? state.duaVolume : 50)) / 100;
 
 function setTargetPlaybackVolume(volPercent) {
-  currentTargetVolumeRatio = Math.max(0, Math.min(100, Number(volPercent) || 0)) / 100;
+  const num = Number(volPercent);
+  currentTargetVolumeRatio = Math.max(0, Math.min(100, isNaN(num) ? 0 : num)) / 100;
   adhanAudioPlayer.volume = currentTargetVolumeRatio;
-  duaAudioPlayer.volume = currentTargetVolumeRatio;
   if (ytPlayer && ytPlayerReady && typeof ytPlayer.setVolume === 'function') {
     ytPlayer.setVolume(Math.round(currentTargetVolumeRatio * 100));
   }
+}
+
+function setTargetDuaVolume(volPercent) {
+  const num = Number(volPercent);
+  currentTargetDuaVolumeRatio = Math.max(0, Math.min(100, isNaN(num) ? 0 : num)) / 100;
+  duaAudioPlayer.volume = currentTargetDuaVolumeRatio;
 }
 
 // Continuous volume lock: older WebViews (like Chrome 49 on Android) frequently reset
@@ -1004,8 +1021,8 @@ function setTargetPlaybackVolume(volPercent) {
     }
   });
   duaAudioPlayer.addEventListener(evt, () => {
-    if (Math.abs(duaAudioPlayer.volume - currentTargetVolumeRatio) > 0.01) {
-      duaAudioPlayer.volume = currentTargetVolumeRatio;
+    if (Math.abs(duaAudioPlayer.volume - currentTargetDuaVolumeRatio) > 0.01) {
+      duaAudioPlayer.volume = currentTargetDuaVolumeRatio;
     }
   });
 });
@@ -1066,6 +1083,9 @@ function initApp() {
   setTargetPlaybackVolume(state.volume);
   elVolumeSlider.value = state.volume;
   elVolumeValue.textContent = `${state.volume}%`;
+  setTargetDuaVolume(state.duaVolume);
+  if (elDuaVolumeSlider) elDuaVolumeSlider.value = state.duaVolume;
+  if (elDuaVolumeValue) elDuaVolumeValue.textContent = `${state.duaVolume}%`;
   elDuaToggle.checked = state.playDua;
 
   // Ensure the 5 Turkish Makam YouTube presets are applied once if not migrated yet
@@ -2367,7 +2387,7 @@ function stopYouTubeVideo() {
 }
 
 function isAnyAudioPlaying() {
-  return !adhanAudioPlayer.paused || state.isYtPlaying;
+  return !adhanAudioPlayer.paused || !duaAudioPlayer.paused || state.isYtPlaying;
 }
 
 function loadCustomMuadhinsFromDb() {
@@ -2757,10 +2777,13 @@ function triggerAdhanPlayback(prayerObj) {
 
   const onAdhanFinished = () => {
     if (state.playDua) {
+      const duaVol = (typeof state.duaVolume === 'number' && !isNaN(state.duaVolume)) ? state.duaVolume : state.volume;
       duaAudioPlayer.src = ADHAN_DUA_URL;
-      setTargetPlaybackVolume(vol);
+      setTargetDuaVolume(duaVol);
+      elBannerPrayerName.textContent = `Ezan Duası (%${duaVol})`;
+      elBannerMuadhinName.textContent = 'Ezan sonrası dua okunuyor';
       safePlayAudio(duaAudioPlayer).then(() => {
-        setTargetPlaybackVolume(vol);
+        setTargetDuaVolume(duaVol);
       }).catch(() => {
         stopAdhanPlayback();
       });
@@ -2784,13 +2807,19 @@ function stopAdhanPlayback() {
   state.isPlayingAdhan = false;
   state.previewingMuadhinId = null;
   state.previewingPrayerKey = null;
+  state.isPreviewingDua = false;
   state.currentPlayingPrayerKey = null;
   setTargetPlaybackVolume(state.volume);
+  setTargetDuaVolume(state.duaVolume);
   adhanAudioPlayer.pause();
   duaAudioPlayer.pause();
   stopYouTubeVideo();
   elAdhanBanner.classList.add('hidden');
   elTestAudioBtn.textContent = 'Seçili Ezanı Dinle';
+  if (elTestDuaBtn) {
+    elTestDuaBtn.textContent = 'Dinle';
+    elTestDuaBtn.classList.remove('playing');
+  }
   renderMuadhinList();
   renderPerPrayerList();
 }
@@ -3098,6 +3127,40 @@ function initEventListeners() {
     state.playDua = e.target.checked;
     localStorage.setItem('clock_play_dua', String(state.playDua));
   });
+
+  if (elDuaVolumeSlider) {
+    elDuaVolumeSlider.addEventListener('input', e => {
+      state.duaVolume = parseInt(e.target.value, 10);
+      if (elDuaVolumeValue) elDuaVolumeValue.textContent = `${state.duaVolume}%`;
+      setTargetDuaVolume(state.duaVolume);
+      localStorage.setItem('clock_dua_volume', String(state.duaVolume));
+    });
+  }
+
+  if (elTestDuaBtn) {
+    elTestDuaBtn.addEventListener('click', () => {
+      if (state.isPreviewingDua && !duaAudioPlayer.paused) {
+        stopAdhanPlayback();
+        return;
+      }
+      stopAdhanPlayback();
+      state.isPreviewingDua = true;
+      setTargetDuaVolume(state.duaVolume);
+      duaAudioPlayer.src = ADHAN_DUA_URL;
+      elBannerPrayerName.textContent = `Ezan Duası Önizleme (%${state.duaVolume})`;
+      elBannerMuadhinName.textContent = 'Ezan sonrası dua dinleniyor...';
+      elAdhanBanner.classList.remove('hidden');
+      elTestDuaBtn.textContent = 'Durdur';
+      elTestDuaBtn.classList.add('playing');
+
+      safePlayAudio(duaAudioPlayer).then(() => {
+        setTargetDuaVolume(state.duaVolume);
+      }).catch(() => {
+        stopAdhanPlayback();
+      });
+      duaAudioPlayer.onended = () => stopAdhanPlayback();
+    });
+  }
 
   elStopAdhanBtn.addEventListener('click', stopAdhanPlayback);
 
